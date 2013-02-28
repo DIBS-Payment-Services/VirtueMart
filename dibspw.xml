@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<install version="1.5" type="plugin" group="vmpayment" method="upgrade">
+    <name>DIBS Payment Window</name>
+    <creationDate>January 2012</creationDate>
+    <author>DIBS A/S</author>
+    <authorUrl>http://www.dibspayment.com</authorUrl>
+    <copyright>Copyright (C) 2012 DIBS A/S. All rights reserved.</copyright>
+    <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
+    <version>4.1.1</version>
+    <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
+	payment provider and available in many countries. ]]>
+    </description>
+    <files>
+	<filename plugin="dibspw">dibspw.php</filename>
+        <filename>imgs/dibspw.gif</filename>
+        <filename>dibs_api/pw/dibs_pw_api.php</filename>
+        <filename>dibs_api/pw/dibs_pw_helpers.php</filename>
+        <filename>dibs_api/pw/dibs_pw_helpers_cms.php</filename>
+        <filename>dibs_api/pw/dibs_pw_helpers_interface.php</filename>
+    </files>
+    <languages>
+	<language tag="en-GB">en-GB.plg_vmpayment_dibspw.ini</language>
+        <language tag="en-GB">en-GB.plg_vmpayment_dibspw.sys.ini</language>
+    </languages>
+    <params addpath="/administrator/components/com_virtuemart/elements">
+	<param type="vmjpluginwarning" />
+        
+	<param type="spacer" default="VMPAYMENT_DIBSPW_PARAMS" level="level1" />
+        
+	<param type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
+             default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
+	<param name="dibspw_method" type="list" default="2" 
+            label="VMPAYMENT_DIBSPW_METHOD" description="VMPAYMENT_DIBSPW_METHOD_DESC">
+            <option value="1">Auto</option>
+            <option value="2">DIBS Payment Window</option>
+        </param>
+	<param type="text" name="dibspw_hmac"  size="50" label="VMPAYMENT_DIBSPW_HMAC"
+             default="" description="VMPAYMENT_DIBSPW_HMAC_DESC" />
+	<param name="dibspw_testmode" type="radio" default="yes" 
+            label="VMPAYMENT_DIBSPW_TESTMODE" description="VMPAYMENT_DIBSPW_TESTMODE_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</param>	
+	<param name="dibspw_fee" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_FEE" description="VMPAYMENT_DIBSPW_FEE_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</param>
+	<param name="dibspw_capturenow" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_CAPTURENOW" description="VMPAYMENT_DIBSPW_CAPTURENOW_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</param>
+	<param name="dibspw_voucher" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_VOUCHER" description="VMPAYMENT_DIBSPW_VOUCHER_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</param>
+	<param name="dibspw_uniq" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_UNIQ" description="VMPAYMENT_DIBSPW_UNIQ_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</param>
+	<param type="text" name="dibspw_paytype"  size="50" label="VMPAYMENT_DIBSPW_PAYTYPE"
+             default="" description="VMPAYMENT_DIBSPW_PAYTYPE_DESC" />
+	<param name="dibspw_lang" type="list" default="en_UK" 
+            label="VMPAYMENT_DIBSPW_LANG" description="VMPAYMENT_DIBSPW_LANG_DESC">
+            <option value="da_DK">Danish</option>
+            <option value="en_UK">English</option>
+            <option value="sv_SE">Swedish</option>
+            <option value="nb_NO">Norwegian</option>
+            <option value="fi_FIN">Finnish</option>
+        </param>
+	<param type="text" name="dibspw_account"  size="50" label="VMPAYMENT_DIBSPW_ACCOUNT"
+             default="" description="VMPAYMENT_DIBSPW_ACCOUNT_DESC" />
+	<param name="dibspw_distr" type="list" default="empty" 
+            label="VMPAYMENT_DIBSPW_DISTR" description="VMPAYMENT_DIBSPW_DISTR_DESC">
+            <option value="empty">Auto</option>
+            <option value="paper">Paper</option>
+            <option value="email">Email</option>
+        </param>
+        
+	<param type="spacer" default="VMPAYMENT_DIBSPW_VIRTUEMART_PARAMS" level="level1" />
+        
+	<param name="payment_logo" type="vmfiles" label="VMPAYMENT_DIBSPW_LOGO"
+             	description="VMPAYMENT_DIBSPW_LOGO_DESC"
+             	directory="/plugins/vmpayment/dibspw/imgs"
+             	default="default" hide_default="1" hide_none="1"
+             	stripext="0"  exclude="^_" />
+	<param name="status_pending" type="vmorderstate" scope="com_virtuemart" default="P" 
+            label="VMPAYMENT_DIBSPW_STATUS_PENDING" description="VMPAYMENT_DIBSPW_STATUS_PENDING_DESC" />
+	<param name="status_success" type="vmorderstate" scope="com_virtuemart" default="C" 
+            label="VMPAYMENT_DIBSPW_STATUS_SUCCESS" description="VMPAYMENT_DIBSPW_STATUS_SUCCESS_DESC" />
+	<param name="status_canceled" type="vmorderstate" scope="com_virtuemart" default="X" 
+            label="VMPAYMENT_DIBSPW_STATUS_FAILED" description="VMPAYMENT_DIBSPW_STATUS_FAILED_DESC" />
+	<param name="countries" type="vmcountries"  scope="com_virtuemart" default="" 
+            label="VMPAYMENT_DIBSPW_COUNTRIES" description="VMPAYMENT_DIBSPW_COUNTRIES_DESC"/>
+	<param name="min_amount" type="text"  label="VMPAYMENT_DIBSPW_MIN_AMOUNT" 
+            description="VMPAYMENT_DIBSPW_MIN_AMOUNT_DESC" />
+	<param name="max_amount" type="text"  label="VMPAYMENT_DIBSPW_MAX_AMOUNT" 
+            description="VMPAYMENT_DIBSPW_MAX_AMOUNT_DESC" />
+    </params>
+    <fieldset addpath="/administrator/components/com_virtuemart/elements">
+	<field type="vmjpluginwarning" />
+        
+	<field type="spacer" default="VMPAYMENT_DIBSPW_PARAMS" level="level1" />
+        
+	<field type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
+             default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
+	<field name="dibspw_method" type="list" default="2" 
+            label="VMPAYMENT_DIBSPW_METHOD" description="VMPAYMENT_DIBSPW_METHOD_DESC">
+            <option value="1">Auto</option>
+            <option value="2">DIBS Payment Window</option>
+            <option value="3">Mobile Payment Window</option>
+        </field>
+	<field type="text" name="dibspw_hmac"  size="50" label="VMPAYMENT_DIBSPW_HMAC"
+             default="" description="VMPAYMENT_DIBSPW_HMAC_DESC" />
+	<field name="dibspw_testmode" type="radio" default="yes" 
+            label="VMPAYMENT_DIBSPW_TESTMODE" description="VMPAYMENT_DIBSPW_TESTMODE_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</field>	
+	<field name="dibspw_fee" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_FEE" description="VMPAYMENT_DIBSPW_FEE_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</field>
+	<field name="dibspw_capturenow" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_CAPTURENOW" description="VMPAYMENT_DIBSPW_CAPTURENOW_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</field>
+	<field name="dibspw_voucher" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_VOUCHER" description="VMPAYMENT_DIBSPW_VOUCHER_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</field>
+	<field name="dibspw_uniq" type="radio" default="no" 
+            label="VMPAYMENT_DIBSPW_UNIQ" description="VMPAYMENT_DIBSPW_UNIQ_DESC">
+	    <option value="no">COM_VIRTUEMART_NO</option>
+	    <option value="yes">COM_VIRTUEMART_YES</option>
+	</field>
+	<field type="text" name="dibspw_paytype"  size="50" label="VMPAYMENT_DIBSPW_PAYTYPE"
+             default="" description="VMPAYMENT_DIBSPW_PAYTYPE_DESC" />
+	<field name="dibspw_lang" type="list" default="en_UK" 
+            label="VMPAYMENT_DIBSPW_LANG" description="VMPAYMENT_DIBSPW_LANG_DESC">
+            <option value="da_DK">Danish</option>
+            <option value="en_UK">English</option>
+            <option value="sv_SE">Swedish</option>
+            <option value="nb_NO">Norwegian</option>
+            <option value="fi_FIN">Finnish</option>
+        </field>
+	<field type="text" name="dibspw_account"  size="50" label="VMPAYMENT_DIBSPW_ACCOUNT"
+             default="" description="VMPAYMENT_DIBSPW_ACCOUNT_DESC" />
+	<field name="dibspw_distr" type="list" default="empty" 
+            label="VMPAYMENT_DIBSPW_DISTR" description="VMPAYMENT_DIBSPW_DISTR_DESC">
+            <option value="empty">Auto</option>
+            <option value="paper">Paper</option>
+            <option value="email">Email</option>
+        </field>
+        
+	<field type="spacer" default="VMPAYMENT_DIBSPW_VIRTUEMART_PARAMS" level="level1" />
+        
+	<field name="payment_logo" type="vmfiles" label="VMPAYMENT_DIBSPW_LOGO"
+             	description="VMPAYMENT_DIBSPW_LOGO_DESC"
+             	directory="/plugins/vmpayment/dibspw/imgs"
+             	default="default" hide_default="1" hide_none="1"
+             	stripext="0"  exclude="^_" />
+	<field name="status_pending" type="vmorderstate" scope="com_virtuemart" default="P" 
+            label="VMPAYMENT_DIBSPW_STATUS_PENDING" description="VMPAYMENT_DIBSPW_STATUS_PENDING_DESC" />
+	<field name="status_success" type="vmorderstate" scope="com_virtuemart" default="C" 
+            label="VMPAYMENT_DIBSPW_STATUS_SUCCESS" description="VMPAYMENT_DIBSPW_STATUS_SUCCESS_DESC" />
+	<field name="status_canceled" type="vmorderstate" scope="com_virtuemart" default="X" 
+            label="VMPAYMENT_DIBSPW_STATUS_FAILED" description="VMPAYMENT_DIBSPW_STATUS_FAILED_DESC" />
+	<field name="countries" type="vmcountries"  scope="com_virtuemart" default="" 
+            label="VMPAYMENT_DIBSPW_COUNTRIES" description="VMPAYMENT_DIBSPW_COUNTRIES_DESC"/>
+	<field name="min_amount" type="text"  label="VMPAYMENT_DIBSPW_MIN_AMOUNT" 
+            description="VMPAYMENT_DIBSPW_MIN_AMOUNT_DESC" />
+	<field name="max_amount" type="text"  label="VMPAYMENT_DIBSPW_MAX_AMOUNT" 
+            description="VMPAYMENT_DIBSPW_MAX_AMOUNT_DESC" />
+    </fieldset>
+</install>
