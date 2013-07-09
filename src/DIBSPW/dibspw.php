@@ -15,7 +15,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
     // instance of class
     public static $_this = false;
     private static $aSqlFields = array(
-	    'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
+	   'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
 	    'virtuemart_order_id' => ' int(1) UNSIGNED DEFAULT NULL',
 	    'order_number' => ' char(32) DEFAULT NULL',
 	    'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED DEFAULT NULL',
@@ -24,7 +24,15 @@ class plgVmPaymentDibspw extends dibs_pw_api {
 	    'payment_currency' => 'char(3) ',
 	    'cost_per_transaction' => ' decimal(10,2) DEFAULT NULL ',
 	    'cost_percent_total' => ' decimal(10,2) DEFAULT NULL ',
-	    'tax_id' => ' smallint(1) DEFAULT NULL'
+	    'tax_id' => ' smallint(1) DEFAULT NULL',
+	    'dibspw_transaction' => ' char(16) DEFAULT NULL',
+	    'dibspw_fee' => ' char(12) DEFAULT NULL',
+	    'dibspw_acquirer' => 'varchar(100)',
+	    'dibspw_amount'   => 'int(11)',
+	    'dibspw_orderid'  => 'varchar(100)',
+	    'dibspw_status'   => 'varchar(30)',
+	    'dibspw_test'       =>  'char(1)',
+	    'dibspw_currency'   => 'char(3)'
     );
 
     function __construct(& $subject, $config) {
@@ -71,6 +79,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
     }
 
     function plgVmConfirmedOrder($oCart, $oOrder) {
+        
         if(!($method = $this->getVmPluginMethod($oOrder['details']['BT']->virtuemart_paymentmethod_id))) {
             return null; // Another method was selected, do nothing
         }
@@ -131,7 +140,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
                                           $oOrder['details']['BT']->order_total, 
                                           false), 2);
         $aDbValues = array(
-                'virtuemart_order_id' => $oOrder['details']['BT']->virtuemart_order_id,
+        'virtuemart_order_id' => $oOrder['details']['BT']->virtuemart_order_id,
 		'order_number' => $oOrder['details']['BT']->order_number,
 		'payment_name' => $this->renderPluginName($method, $oOrder),
 		'virtuemart_paymentmethod_id' => $oCart->virtuemart_paymentmethod_id,
@@ -195,28 +204,6 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $aPaymentData = JRequest::get('post');
         $sPaymentName = $this->renderPluginName($method);
         vmdebug('plgVmOnPaymentResponseReceived', $aPaymentData);
-        $oModelOrder = VmModel::getModel('orders');
-        $virtuemart_order_id = $aPaymentData['orderid'];
-        $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
-        $this->api_dibs_action_success($oOrder);
-
-        if($virtuemart_order_id) {
-            $order['customer_notified'] = 0;
-            $order['order_status'] = $this->helper_dibs_tools_conf('status_success', '');
-            $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED', $virtuemart_order_id);
-            // send the email ONLY if payment has been accepted
-            if($oOrder['history'][count($oOrder['history']) - 1]->order_status_code != $order['order_status']) {
-                $this->logInfo('plgVmOnPaymentResponseReceived, sentOrderConfirmedEmail ' . $virtuemart_order_id, 'message');
-                $order['virtuemart_order_id'] = $virtuemart_order_id;
-                $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_EMAIL_SENT');
-                $oModelOrder->updateStatusForOneOrder($virtuemart_order_id, $order, true);
-            }
-        }
-        else {
-            vmError('DIBS data received, but no order id');
-            return;
-        }
-
         $cart = VirtueMartCart::getCart();
         $cart->emptyCart();
 
@@ -245,6 +232,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
      */
 
     function plgVmOnPaymentNotification() {
+       
         $aPaymentData = $_POST;
         if(!isset($aPaymentData['orderid']) || !isset($aPaymentData['s_sysmod'])) return;
         if(!class_exists('VirtueMartModelOrders'))
@@ -258,8 +246,52 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         if(!$payment) {
             $this->logInfo('getDataByOrderId payment not found: exit ', 'ERROR');
             return null;
+        } 
+        // Save specific data to db table payment_plg_dibspw
+        $db = JFactory::getDBO();
+        $query = 'SHOW COLUMNS FROM `' . $this->_tablename . '` ';
+        $db->setQuery($query);
+        $columns = $db->loadResultArray(0);
+        $post_msg = '';
+        foreach ($aPaymentData as $key => $value) {
+            $table_key = 'dibspw_' . $key;
+            if (in_array($table_key, $columns)) {
+            $response_fields[$table_key] = $value;
         }
+        } 
+         
+        $response_fields['payment_name'] = $this->renderPluginName($method);
+        $response_fields['order_number'] = $order_number;
+        $response_fields['virtuemart_order_id'] = $virtuemart_order_id;
+        $response_fields['virtuemart_paymentmethod_id'] = $payment->virtuemart_paymentmethod_id;
+        
+       
+        $this->storePSPluginInternalData($response_fields, 'virtuemart_order_id', $virtuemart_order_id, false);
+        
+        // Set Confirmed status to order
+        $oModelOrder = VmModel::getModel('orders');
+        $virtuemart_order_id = $aPaymentData['orderid'];
+        $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
+        $this->api_dibs_action_success($oOrder);
 
+        if($virtuemart_order_id) {
+            $order['customer_notified'] = 0;
+            $order['order_status'] = $this->helper_dibs_tools_conf('status_success', '');
+            $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED', $virtuemart_order_id);
+            // send the email ONLY if payment has been accepted
+            if($oOrder['history'][count($oOrder['history']) - 1]->order_status_code != $order['order_status']) {
+                $this->logInfo('plgVmOnPaymentResponseReceived, sentOrderConfirmedEmail ' . $virtuemart_order_id, 'message');
+                $order['virtuemart_order_id'] = $virtuemart_order_id;
+                $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_EMAIL_SENT');
+                $oModelOrder->updateStatusForOneOrder($virtuemart_order_id, $order, true);
+            }
+        }
+        else {
+            vmError('DIBS data received, but no order id');
+            return;
+        }
+       
+       
         $this->method_obj = $method;
         $this->api_dibs_action_callback($oModelOrder->getOrder($virtuemart_order_id));
     }
@@ -350,6 +382,47 @@ class plgVmPaymentDibspw extends dibs_pw_api {
 
     function plgVmSetOnTablePluginParamsPayment($name, $id, &$table) {
         return $this->setOnTablePluginParams($name, $id, $table);
+    }
+    
+     /**
+     * Display stored payment data for an order
+     * @see components/com_virtuemart/helpers/vmPSPlugin::plgVmOnShowOrderBEPayment()
+     */
+    function plgVmOnShowOrderBEPayment($virtuemart_order_id, $payment_method_id) {
+    
+    if (!$this->selectedThisByMethodId($payment_method_id)) {
+        return null; // Another method was selected, do nothing
+    }
+
+    $db = JFactory::getDBO();
+    $q = 'SELECT * FROM `' . $this->_tablename . '` '
+        . 'WHERE `virtuemart_order_id` = ' . $virtuemart_order_id;
+    $db->setQuery($q);
+    if (!($paymentTable = $db->loadObject())) {
+       // JError::raiseWarning(500, $db->getErrorMsg());
+        return '';
+    }
+    $this->getPaymentCurrency($paymentTable);
+    $q = 'SELECT `currency_code_3` FROM `#__virtuemart_currencies` WHERE `virtuemart_currency_id`="' . $paymentTable->payment_currency . '" ';
+    
+   
+    $db = &JFactory::getDBO();
+    $db->setQuery($q);
+    $currency_code_3 = $db->loadResult();
+    $html = '<table class="adminlist">' . "\n";
+    $html .= $this->getHtmlHeaderBE();
+    $html .= $this->getHtmlRowBE('dibspw_methodname', $paymentTable->payment_name);
+    $code = "dibspw_";
+    $paymentFields = array('transaction', 'acquirer', 'status', 'test');
+    foreach ($paymentTable as $key => $value) {
+        if (substr($key, 0, strlen($code)) == $code) {
+            if( in_array(substr($key, strlen($code)), $paymentFields)) {    
+                $html .= $this->getHtmlRowBE($key, $value);
+            }
+        }
+    }
+    $html .= '</table>' . "\n";
+    return $html;
     }
 
 }
