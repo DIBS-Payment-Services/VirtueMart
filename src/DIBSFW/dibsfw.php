@@ -164,7 +164,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         }
 
         $sForm = '<form action="' . $this->api_dibs_get_formAction() .
-                '" method="post" name="vm_dibspw_form" >';
+                '" method="post" name="vm_dibspw_form" accept-charset="UTF-8">';
         $sForm.= '<input type="submit" value="Proceed payment" 
                 alt="Click to pay with DIBS - secure payment service!" />';
         foreach($aData as $sName => $sValue) {
