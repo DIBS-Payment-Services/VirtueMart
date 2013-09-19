@@ -6,7 +6,7 @@
     <authorUrl>http://www.dibspayment.com</authorUrl>
     <copyright>Copyright (C) 2012 DIBS A/S. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
-    <version>3.0.1</version>
+    <version>3.0.2</version>
     <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
 	payment provider and available in many countries. ]]>
     </description>
@@ -191,7 +191,6 @@
             <option value="en_UK">English</option>
             <option value="sv_SE">Swedish</option>
             <option value="nb_NO">Norwegian</option>
-            <option value="fi_FIN">Finnish</option>
         </field>
 	<field type="text" name="dibsfw_account"  size="50" label="VMPAYMENT_DIBSFW_ACCOUNT"
              default="" description="VMPAYMENT_DIBSFW_ACCOUNT_DESC" />

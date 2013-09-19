@@ -323,7 +323,10 @@ class dibs_pw_api extends dibs_pw_helpers {
      * @param mixed $mOrder 
      */
     final public function api_dibs_action_success($mOrder) {
+        
+       
         $iErr = $this->api_dibs_checkMainFields($mOrder);
+        
         if(empty($iErr)) {
             $this->api_dibs_updateResultRow(array('success_action' => '1', 'success_error' => ''));
         }
@@ -369,8 +372,6 @@ class dibs_pw_api extends dibs_pw_helpers {
         if($this->helper_dibs_db_read_single($sQuery, 'status') == 0) {
             $aFields = array('callback_action' => 1);
             $aResponse = $_POST;
-                     
-            $fl = fopen("/home/maxwhite/resultest.txt", "a+");
             foreach(self::$aRespFields as $sDbKey => $sPostKey) {
                 if(is_array($sPostKey)) {
                     if(isset($_POST[$sPostKey[2]])) {
@@ -383,7 +384,6 @@ class dibs_pw_api extends dibs_pw_helpers {
                 if(!empty($sPostKey) && isset($_POST[$sPostKey])) {
                     unset($aResponse[$sPostKey]);
                     $aFields[$sDbKey] = $_POST[$sPostKey];
-                    fputs($fl, "$sDbKey=>$sPostKey\n");
                 }
             }
             
@@ -409,6 +409,7 @@ class dibs_pw_api extends dibs_pw_helpers {
             foreach($aFields as $sCell => $sVal) {
                 $sUpdate .= "`" . $sCell . "`=" . "'" . self::api_dibs_sqlEncode($sVal) . "',";
             }
+            
             $this->helper_dibs_db_write(
                 "UPDATE `" . $this->helper_dibs_tools_prefix() . self::api_dibs_get_tableName() . "`
                  SET " . rtrim($sUpdate, ",") . " 

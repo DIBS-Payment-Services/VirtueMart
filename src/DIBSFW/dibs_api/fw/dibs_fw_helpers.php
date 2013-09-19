@@ -10,6 +10,9 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
      * @param string $sQuery 
      */
     public function helper_dibs_db_write($sQuery) {
+        $oDB_dibs =& JFactory::getDBO();
+        $oDB_dibs->setQuery($sQuery);
+        $oDB_dibs->query();
         return true;
     }
     
@@ -22,11 +25,10 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
      * @return mixed 
      */
     public function helper_dibs_db_read_single($sQuery, $sName) {
-          $oDB_dibs =& JFactory::getDBO();
+        $oDB_dibs =& JFactory::getDBO();
         $oDB_dibs->setQuery($sQuery);
         $mResult = $oDB_dibs->loadObjectList();
         unset($oDB_dibs);
-        
         if(isset($mResult[0]->$sName)) return $mResult[0]->$sName;
         else return null;
     }
@@ -92,18 +94,27 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
      * @return object 
      */
     public function helper_dibs_obj_order($mOrderInfo, $bResponse = FALSE) {
-        if($bResponse === TRUE) {
-            //some onResponse behavior
+                
+   if($bResponse === FALSE) {
+            return (object)array(
+                'orderid'  => $mOrderInfo->order->orderid,
+                'amount'   => $mOrderInfo->cart['billTotal'],
+                'currency' => $this->api_dibs_get_currencyValue(
+                                  $this->cms_dibs_get_currency($mOrderInfo->order->currency)
+                              )
+                );
         }
-        
-		//var_dump( $mOrderInfo );
-		
-        return (object)array(
-            'orderid'  => $mOrderInfo->order->orderid,
-            'amount'   => $mOrderInfo->cart['billTotal'],
-            'currency' => $this->cms_dibs_get_currency($mOrderInfo->order->currency)
-                              
-        );
+        else {
+            return (object)array(
+                'orderid'  => $mOrderInfo['details']['BT']->virtuemart_order_id,
+                'amount'   => $mOrderInfo['details']['BT']->order_total,
+                'currency' => $this->api_dibs_get_currencyValue(
+                                  $this->cms_dibs_get_currency(
+                                      $mOrderInfo['details']['BT']->order_currency
+                                  )
+                              )
+            );
+        }
     }
     
     /**
@@ -226,13 +237,13 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
      */
     public function helper_dibs_obj_urls($mOrderInfo = null) {
         return (object)array(
-            'acceptreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived',
-            'callbackurl'     => "index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification",
-            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel',
+            'acceptreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginresponsereceived/',
+            'callbackurl'     =>  "http://izotov.net/max.php",   //"index.php/component/virtuemart/pluginresponse/pluginnotification/pluginnotification/",
+            'cancelreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginuserpaymentCancel/',
             'carturl'         => "index.php/cart/"
         );
   
-    }
+    } 
     
     /**
      * Returns object with additional information to send with payment.
@@ -245,7 +256,7 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
         //var_dump($mOrderInfo);
         //exit;    
         return (object)array(
-            'sysmod'      => 'j25vm2_3_0_1',
+            'sysmod'      => 'j25vm2_3_0_2',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
         );
     }

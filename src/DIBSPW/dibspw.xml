@@ -6,7 +6,7 @@
     <authorUrl>http://www.dibspayment.com</authorUrl>
     <copyright>Copyright (C) 2012 DIBS A/S. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
-    <version>4.1.2</version>
+    <version>4.1.3</version>
     <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
 	payment provider and available in many countries. ]]>
     </description>
@@ -29,11 +29,7 @@
         
 	<param type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
              default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
-	<param name="dibspw_method" type="list" default="2" 
-            label="VMPAYMENT_DIBSPW_METHOD" description="VMPAYMENT_DIBSPW_METHOD_DESC">
-            <option value="1">Auto</option>
-            <option value="2">DIBS Payment Window</option>
-        </param>
+
 	<param type="text" name="dibspw_hmac"  size="50" label="VMPAYMENT_DIBSPW_HMAC"
              default="" description="VMPAYMENT_DIBSPW_HMAC_DESC" />
 	<param name="dibspw_testmode" type="radio" default="yes" 
@@ -51,11 +47,6 @@
 	    <option value="no">COM_VIRTUEMART_NO</option>
 	    <option value="yes">COM_VIRTUEMART_YES</option>
 	</param>
-	<param name="dibspw_voucher" type="radio" default="no" 
-            label="VMPAYMENT_DIBSPW_VOUCHER" description="VMPAYMENT_DIBSPW_VOUCHER_DESC">
-	    <option value="no">COM_VIRTUEMART_NO</option>
-	    <option value="yes">COM_VIRTUEMART_YES</option>
-	</param>
 	<param name="dibspw_uniq" type="radio" default="no" 
             label="VMPAYMENT_DIBSPW_UNIQ" description="VMPAYMENT_DIBSPW_UNIQ_DESC">
 	    <option value="no">COM_VIRTUEMART_NO</option>
@@ -69,7 +60,6 @@
             <option value="en_UK">English</option>
             <option value="sv_SE">Swedish</option>
             <option value="nb_NO">Norwegian</option>
-            <option value="fi_FIN">Finnish</option>
         </param>
 	<param type="text" name="dibspw_account"  size="50" label="VMPAYMENT_DIBSPW_ACCOUNT"
              default="" description="VMPAYMENT_DIBSPW_ACCOUNT_DESC" />
@@ -79,9 +69,7 @@
             <option value="paper">Paper</option>
             <option value="email">Email</option>
         </param>
-        
 	<param type="spacer" default="VMPAYMENT_DIBSPW_VIRTUEMART_PARAMS" level="level1" />
-        
 	<param name="payment_logo" type="vmfiles" label="VMPAYMENT_DIBSPW_LOGO"
              	description="VMPAYMENT_DIBSPW_LOGO_DESC"
              	directory="/plugins/vmpayment/dibspw/imgs"
@@ -130,16 +118,6 @@
 	    <option value="no">COM_VIRTUEMART_NO</option>
 	    <option value="yes">COM_VIRTUEMART_YES</option>
 	</field>
-	<field name="dibspw_voucher" type="radio" default="no" 
-            label="VMPAYMENT_DIBSPW_VOUCHER" description="VMPAYMENT_DIBSPW_VOUCHER_DESC">
-	    <option value="no">COM_VIRTUEMART_NO</option>
-	    <option value="yes">COM_VIRTUEMART_YES</option>
-	</field>
-	<field name="dibspw_uniq" type="radio" default="no" 
-            label="VMPAYMENT_DIBSPW_UNIQ" description="VMPAYMENT_DIBSPW_UNIQ_DESC">
-	    <option value="no">COM_VIRTUEMART_NO</option>
-	    <option value="yes">COM_VIRTUEMART_YES</option>
-	</field>
 	<field type="text" name="dibspw_paytype"  size="50" label="VMPAYMENT_DIBSPW_PAYTYPE"
              default="" description="VMPAYMENT_DIBSPW_PAYTYPE_DESC" />
 	<field name="dibspw_lang" type="list" default="en_UK" 
@@ -158,9 +136,7 @@
             <option value="paper">Paper</option>
             <option value="email">Email</option>
         </field>
-        
 	<field type="spacer" default="VMPAYMENT_DIBSPW_VIRTUEMART_PARAMS" level="level1" />
-        
 	<field name="payment_logo" type="vmfiles" label="VMPAYMENT_DIBSPW_LOGO"
              	description="VMPAYMENT_DIBSPW_LOGO_DESC"
              	directory="/plugins/vmpayment/dibspw/imgs"
@@ -179,4 +155,4 @@
 	<field name="max_amount" type="text"  label="VMPAYMENT_DIBSPW_MAX_AMOUNT" 
             description="VMPAYMENT_DIBSPW_MAX_AMOUNT_DESC" />
     </fieldset>
-</install>
+</install>      

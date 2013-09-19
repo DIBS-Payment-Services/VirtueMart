@@ -133,11 +133,8 @@ class dibs_fw_api extends dibs_fw_helpers {
         if(!empty($sPaytype)) $aData['paytype'] = $sPaytype;
         $sAccount = $this->helper_dibs_tools_conf('account');
         if(!empty($sAccount)) $aData['account'] = $sAccount;
-        
         $aData['accepturl'] = $this->helper_dibs_tools_url($oOrder->urls->acceptreturnurl);
-        
         $aData['cancelurl'] = $this->helper_dibs_tools_url($oOrder->urls->cancelreturnurl);
-        $aData['callbackurl']     = $oOrder->urls->callbackurl;
         if(strpos($aData['callbackurl'], '/5c65f1600b8_dcbf.php') === FALSE) {
             $aData['callbackurl'] = $this->helper_dibs_tools_url($aData['callbackurl']);
         }
@@ -185,10 +182,6 @@ class dibs_fw_api extends dibs_fw_helpers {
             $sVal = trim($sVal);
             if(!empty($sVal)) $aData[$sKey] = self::api_dibs_utf8Fix($sVal);
         }
-        
-        
-         if (cc) {
-            
             $aData ['ordline0-1'] = 'ItemID';
             $aData ['ordline0-2'] = 'ItemDescription';
             $aData ['ordline0-3'] = 'SKU   ';
@@ -196,7 +189,6 @@ class dibs_fw_api extends dibs_fw_helpers {
             $aData ['ordline0-5'] = 'Tax    ';
             $aData ['ordline0-6'] = 'Quantity   ';
             $aData ['ordline0-7'] = 'TotalPrice    ';
-            
             $i = 1;
             foreach($oOrder->items as $oItem) {
             $aData ['ordline'.$i.'-1'] = $oItem->id;
@@ -216,10 +208,6 @@ class dibs_fw_api extends dibs_fw_helpers {
              
             $aData ['priceinfo1.Shippingmethod'] = 'Shipping';
             $aData ['priceinfo2.Shippingcost'] = round($oOrder->ship->tax / 100, 2);
-            
-        }
-        
-        $this->helper_dibs_db_read_single($sQuery, $sName);
         $oOrder->items[] = $oOrder->ship;
         $aData['structuredOrderInformation'] = $this->api_dibs_getInvoiceXml($oOrder->order->orderid,
                                                                              $oOrder->items);
@@ -339,8 +327,6 @@ class dibs_fw_api extends dibs_fw_helpers {
     private function api_dibs_checkMainFields($mOrder) {
         if(!isset($_POST['orderid'])) return 1;
         $mOrder = $this->helper_dibs_obj_order($mOrder, TRUE);
-        if(!$mOrder->orderid) return 2;
-
         if(!isset($_POST['amount'])) return 3;
         if(isset($_POST['voucher_amount']) && $_POST['voucher_amount'] > 0) {
             $iAmount = ($_POST['amount'] == 0) ? $_POST['voucher_amount'] : $_POST['amount_original'];
@@ -348,15 +334,13 @@ class dibs_fw_api extends dibs_fw_helpers {
         else $iAmount = $_POST['amount'];
         $iFeeAmount = (isset($_POST['fee']) && $_POST['fee'] > 0) ? 
                       $iAmount - $_POST['fee'] : $iAmount;
-
-        if(abs((int)$iAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01 &&
-           abs((int)$iFeeAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01) return 4;
-	if(!isset($_POST['currency'])) return 5;
-        if((int)$mOrder->currency != (int)$_POST['currency']) return 6;
-           
+        if(abs((int)$iAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01 && abs((int)$iFeeAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01) return 4;
+    	if(!isset($_POST['currency'])) return 5;
+        
+        if((int)$mOrder->currency != $_POST['currency']) return 6;
+        
         if(self::api_dibs_checkHash($this->helper_dibs_tools_conf('md5key1'), 
                                     $this->helper_dibs_tools_conf('md5key2')) !== TRUE) return 7;
-        
         return 0;
     }
 
@@ -411,6 +395,8 @@ class dibs_fw_api extends dibs_fw_helpers {
      */
     final public function api_dibs_action_callback($mOrder) {
         $iErr = $this->api_dibs_checkMainFields($mOrder, FALSE);
+        
+        
         if(!empty($iErr)) {
             if($iErr != 1 && $iErr != 2) {
                 $this->api_dibs_updateResultRow(array('callback_error' => $iErr));
@@ -418,10 +404,15 @@ class dibs_fw_api extends dibs_fw_helpers {
             exit((string)$iErr);
         }
         
+       
+        
+        
    	$sQuery = "SELECT `status` FROM `" . $this->helper_dibs_tools_prefix() . 
                                              self::api_dibs_get_tableName() . "` 
                    WHERE `orderid` = '" . self::api_dibs_sqlEncode($_POST['orderid']) . "' 
                    LIMIT 1;";
+                   
+       
         if($this->helper_dibs_db_read_single($sQuery, 'status') == 0) {
             $aFields = array('callback_action' => 1, 'status' => 1);
             $aResp = $_POST;
@@ -434,6 +425,8 @@ class dibs_fw_api extends dibs_fw_helpers {
             }
             $aFields['ext_info'] = serialize($aResp);
             unset($aResp, $sDbKey, $sPostKey);
+            
+            
             $this->api_dibs_updateResultRow($aFields);
             
             if(is_callable(array($this, 'helper_dibs_hook_callback')) &&
