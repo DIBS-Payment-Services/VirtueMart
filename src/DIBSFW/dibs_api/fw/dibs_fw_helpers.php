@@ -238,7 +238,7 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
     public function helper_dibs_obj_urls($mOrderInfo = null) {
         return (object)array(
             'acceptreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginresponsereceived/',
-            'callbackurl'     =>  "http://izotov.net/max.php",   //"index.php/component/virtuemart/pluginresponse/pluginnotification/pluginnotification/",
+            'callbackurl'     => "index.php/component/virtuemart/pluginresponse/pluginnotification/pluginnotification/",
             'cancelreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginuserpaymentCancel/',
             'carturl'         => "index.php/cart/"
         );
