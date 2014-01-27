@@ -353,23 +353,18 @@ class dibs_pw_api extends dibs_pw_helpers {
      */
     final public function api_dibs_action_callback($mOrder) {
         $iErr = $this->api_dibs_checkMainFields($mOrder, FALSE);
-        
-      
         if(!empty($iErr)) {
             if($iErr != 11 && $iErr != 12) {
                 $this->api_dibs_updateResultRow(array('callback_error' => 'Errno: ' . $iErr));
             }
             exit((string)$iErr);
         }
-        
-   	$sQuery = "SELECT `status` FROM `" . $this->helper_dibs_tools_prefix() . 
+      	$sQuery = "SELECT `status` FROM `" . $this->helper_dibs_tools_prefix() . 
                                              self::api_dibs_get_tableName() . "` 
                    WHERE `orderid` = '" . self::api_dibs_sqlEncode($_POST['orderid']) . "' 
                    LIMIT 1;";
-                   
-          
-                      
-        if($this->helper_dibs_db_read_single($sQuery, 'status') == 0) {
+        $status = $this->helper_dibs_db_read_single($sQuery, 'status');
+        if($status == "PENDING" || empty($status)) {
             $aFields = array('callback_action' => 1);
             $aResponse = $_POST;
             foreach(self::$aRespFields as $sDbKey => $sPostKey) {
@@ -386,11 +381,10 @@ class dibs_pw_api extends dibs_pw_helpers {
                     $aFields[$sDbKey] = $_POST[$sPostKey];
                 }
             }
-            
             $aFields['ext_info'] = serialize($aResponse);
             unset($aResponse);
             $this->api_dibs_updateResultRow($aFields);
-            if(method_exists($this, 'helper_dibs_hook_callback')) {
+            if(method_exists($this, 'helper_dibs_hook_callback') && $_POST['status'] == "ACCEPTED") {
                 $this->helper_dibs_hook_callback($mOrder);
             }
         }
