@@ -36,6 +36,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $this->_tableId = 'id';
         $aVarsToPush = array(
             'dibspw_mid' => array('', 'char'),
+	    'dibspw_partnerid' => array('', 'char'),  
             'dibspw_method' => array('2', 'int'),
             'dibspw_hmac' => array('', 'char'),
             'dibspw_testmode' => array('yes', 'char'),

@@ -6,7 +6,7 @@
     <authorUrl>http://www.dibspayment.com</authorUrl>
     <copyright>Copyright (C) 2012 DIBS A/S. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
-    <version>4.1.4</version>
+    <version>4.1.5</version>
     <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
 	payment provider and available in many countries. ]]>
     </description>
@@ -26,9 +26,12 @@
 	<param type="vmjpluginwarning" />
         
 	<param type="spacer" default="VMPAYMENT_DIBSPW_PARAMS" level="level1" />
-        
+
 	<param type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
              default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
+
+	<param type="text" name="dibspw_partnerid"  size="50" label="VMPAYMENT_DIBSPW_PID"
+             default="" description="VMPAYMENT_DIBSPW_PID_DESC" />
 
 	<param type="text" name="dibspw_hmac"  size="50" label="VMPAYMENT_DIBSPW_HMAC"
              default="" description="VMPAYMENT_DIBSPW_HMAC_DESC" />
@@ -95,6 +98,10 @@
         
 	<field type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
              default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
+
+	<field type="text" name="dibspw_partnerid"  size="50" label="VMPAYMENT_DIBSPW_PID"
+             default="" description="VMPAYMENT_DIBSPW_PID_DESC" />
+
 	<field name="dibspw_method" type="list" default="2" 
             label="VMPAYMENT_DIBSPW_METHOD" description="VMPAYMENT_DIBSPW_METHOD_DESC">
             <option value="1">Auto</option>
