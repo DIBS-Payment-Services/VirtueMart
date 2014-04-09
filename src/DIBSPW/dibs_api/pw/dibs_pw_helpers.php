@@ -112,44 +112,29 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_items($mOrderInfo) {
         $aItems = array();
-        //$aDiscounts = array();
         foreach($mOrderInfo->order->items as $mItem) {
-            /*$this->cms_dibs_get_discounts(
-                $mOrderInfo->cart[$mItem->virtuemart_product_id]['DATax'],
-                $mItem->product_quantity,
-                $aDiscounts
-            );*/
-            
+          
             $aItems[] = (object)array(
                 'id'    => $mItem->virtuemart_product_id,
                 'name'  => $mItem->order_item_name,
                 'sku'   => $mItem->order_item_sku,
-                'price' => $mItem->product_item_price,
+                'price' => $mItem->product_final_price,
                 'qty'   => $mItem->product_quantity,
-                'tax'   => $this->cms_dibs_get_tax_item(
-                               $mOrderInfo->cart[$mItem->virtuemart_product_id]['Tax']
-                           )
+                'tax'   => 0//$mItem->product_tax
             );
         }
-        unset($mItem);
-/*        foreach($aDiscounts as $iKey => $mItem) {
+
+        if(isset($mOrderInfo->cart['couponValue']) && $mOrderInfo->cart['couponValue']){
+            $couponAmount = abs($mOrderInfo->cart['couponValue']);
             $aItems[] = (object)array(
-                'id'    => 'd' . $iKey,
-                'name'  => $mItem->name,
-                'sku'   => $mItem->name,
-                'price' => -$mItem->price,
-                'qty'   => $mItem->qty,
+                'id'    => 'coupon_0',
+                'name'  => 'Counpon',
+                'sku'   => 'cpn',
+                'price' => -$couponAmount,
+                'qty'   => 1,
                 'tax'   => 0
-            );
-        }*/
-        $aItems[] = (object)array(
-            'id'    => 'discount0',
-            'name'  => 'Total Discount',
-            'sku'   => 'TotalDiscount0',
-            'price' => $mOrderInfo->cart['discountAmount'],
-            'qty'   => 1,
-            'tax'   => 0
-        );
+            );     
+        }
         
         return $aItems;
     }
@@ -162,8 +147,12 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_ship($mOrderInfo) {
         return (object)array(
-            'rate'   => $mOrderInfo->cart['shipmentValue'],
-            'tax'    => $mOrderInfo->shipping_tax
+            'id'    => 'shipping0',
+            'name'  => 'Shipping',
+            'sku'   => 'TotalDiscount0',
+            'price' => (float)$mOrderInfo->shipping->order_shipment,
+            'qty'   => 1,
+            'tax'   => (float)$mOrderInfo->shipping->order_shipment_tax
         );
     }
     
@@ -217,7 +206,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      * @param mixed $mOrderInfo
      * @return object 
      */
-    function helper_dibs_obj_urls($mOrderInfo = null) {
+    function helper_dibs_obj_urls() {
         return (object)array(
             'acceptreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived',
             'callbackurl'     => "index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification",
@@ -234,7 +223,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_etc($mOrderInfo) {
         return (object)array(
-            'sysmod'      => 'j25v_4_1_5',
+            'sysmod'      => 'j25v_4_1_6',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
             'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification'),
             'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')		

@@ -75,7 +75,7 @@ class dibs_pw_api extends dibs_pw_helpers {
     private function api_dibs_commonOrderObject($mOrderInfo) {
         return (object)array(
             'order' => $this->helper_dibs_obj_order($mOrderInfo),
-            'urls'  => $this->helper_dibs_obj_urls($mOrderInfo),
+            'urls'  => $this->helper_dibs_obj_urls(),
             'etc'   => $this->helper_dibs_obj_etc($mOrderInfo)
         );
     }
@@ -112,16 +112,17 @@ class dibs_pw_api extends dibs_pw_helpers {
      * @return array 
      */
     final public function api_dibs_get_requestFields($mOrderInfo) {
+        $aData  = array();
         $oOrder = $this->api_dibs_commonOrderObject($mOrderInfo);
         $this->api_dibs_prepareDB($oOrder->order->orderid);
         $this->api_dibs_commonFields($aData, $oOrder);
+        $this->api_dibs_invoiceFields($aData, $mOrderInfo);
         if(count($oOrder->etc) > 0) {
             foreach($oOrder->etc as $sKey => $sVal) $aData['s_' . $sKey] = $sVal;
         }  
         if((string)$this->helper_dibs_tools_conf('capturenow') == 'yes') {
              $aData['capturenow'] = 1;
         }
-      
         array_walk($aData, create_function('&$val', '$val = trim($val);'));
         $sMAC = $this->api_dibs_calcMAC($aData, $this->helper_dibs_tools_conf('hmac'));
         if(!empty($sMAC)) $aData['MAC'] = $sMAC;
@@ -164,6 +165,7 @@ class dibs_pw_api extends dibs_pw_helpers {
      */
     private function api_dibs_invoiceFields(&$aData, $mOrderInfo) {
         $oOrder = $this->api_dibs_invoiceOrderObject($mOrderInfo);
+        $orderAmount = self::api_dibs_round($this->api_dibs_commonOrderObject($mOrderInfo)->order->amount);
         foreach($oOrder->addr as $sKey => $sVal) {
             $sVal = trim($sVal);
             if(!empty($sVal)) {
@@ -174,10 +176,12 @@ class dibs_pw_api extends dibs_pw_helpers {
             $aData['shippingFee']    = self::api_dibs_round($oOrder->ship->rate);
             $aData['shippingFeeVAT'] = self::api_dibs_round($oOrder->ship->tax);            
         }
+        
+        $oOrder->items[] = $this->helper_dibs_obj_ship($mOrderInfo);
+        $calculatedPrice = 0;
         if(isset($oOrder->items) && count($oOrder->items) > 0) {
-            $aData['oitypes'] = 'QUANTITY;UNITCODE;DESCRIPTION;AMOUNT;ITEMID;VATPERCENT';
-            $aData['oinames'] = 'Qty;UnitCode;Description;Amount;ItemId;VatPercent';
-           
+            $aData['oitypes'] = 'QUANTITY;UNITCODE;DESCRIPTION;AMOUNT;ITEMID;VATAMOUNT';
+            $aData['oinames'] = 'Qty;UnitCode;Description;Amount;ItemId;VatAmount';
             $i = 1;
             foreach($oOrder->items as $oItem) {
                 $iTmpPrice = self::api_dibs_round($oItem->price);
@@ -192,10 +196,22 @@ class dibs_pw_api extends dibs_pw_helpers {
                         $iTmpPrice . ";" .
                         self::api_dibs_utf8Fix(str_replace(";","\;",$oItem->id)) . ";" .
                         self::api_dibs_round($oItem->tax);
+                  $calculatedPrice += ($iTmpPrice + self::api_dibs_round($oItem->tax)) * (self::api_dibs_round($oItem->qty, 3) / 1000) ;
                 }
                 unset($iTmpPrice, $sTmpName);
             }
-	}
+            // Rounding fix      
+            if($orderAmount != $calculatedPrice) {
+                   $roundingDelta = $orderAmount - $calculatedPrice; 
+                   $roundingDelta;
+                   $aData['oiRow' . $i++] = 
+                        "1;" . 
+                        "pcs" . ";" . 
+                        "Rounding;" .
+                        $roundingDelta . ";" .
+                        "rnd;0";
+            }
+ 	}
         if(!empty($aData['orderid'])) $aData['yourRef'] = $aData['orderid'];
         if((string)$this->helper_dibs_tools_conf('capturenow') == 'yes') $aData['capturenow'] = 1;
         $sDistributionType = $this->helper_dibs_tools_conf('distr');
@@ -288,17 +304,14 @@ class dibs_pw_api extends dibs_pw_helpers {
         if(!isset($_POST['orderid'])) return 12;
         $mOrder = $this->helper_dibs_obj_order($mOrder, TRUE);
         if(!$mOrder->orderid) return 11;
-
-        if(!isset($_POST['amount'])) return 22;
+      if(!isset($_POST['amount'])) return 22;
         $iAmount = (isset($_POST['voucherAmount']) && $_POST['voucherAmount'] > 0) ? 
                     $_POST['amountOriginal'] : $_POST['amount'];
         if(abs((int)$iAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01) return 21;
 	     if(!isset($_POST['currency'])) return 32;
         if((int)$mOrder->currency != (int)$_POST['currency']) return 31;
-           
         $sHMAC = $this->helper_dibs_tools_conf('hmac');
         if(!empty($sHMAC) && self::api_dibs_checkMAC($sHMAC, $bUrlDecode) !== TRUE) return 41;
-        
         return 0;
     }
    
@@ -323,10 +336,7 @@ class dibs_pw_api extends dibs_pw_helpers {
      * @param mixed $mOrder 
      */
     final public function api_dibs_action_success($mOrder) {
-        
-       
         $iErr = $this->api_dibs_checkMainFields($mOrder);
-        
         if(empty($iErr)) {
             $this->api_dibs_updateResultRow(array('success_action' => '1', 'success_error' => ''));
         }

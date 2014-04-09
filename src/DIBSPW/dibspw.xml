@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<install version="1.5" type="plugin" group="vmpayment" method="upgrade">
+<install version="1.6" type="plugin" group="vmpayment" method="upgrade">
     <name>DIBS Payment Window</name>
     <creationDate>January 2012</creationDate>
     <author>DIBS A/S</author>
     <authorUrl>http://www.dibspayment.com</authorUrl>
     <copyright>Copyright (C) 2012 DIBS A/S. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
-    <version>4.1.5</version>
+    <version>4.1.6</version>
     <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
 	payment provider and available in many countries. ]]>
     </description>

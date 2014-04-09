@@ -1,6 +1,6 @@
 <?php
 
-defined('_JEXEC') or die('Direct Access to ' . basename(__FILE__) . ' is not allowed.');
+//defined('_JEXEC') or die('Direct Access to ' . basename(__FILE__) . ' is not allowed.');
 
 /**
  * @author DIBS A/S
@@ -77,9 +77,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         }
         
         if(!$this->selectedThisElement($method->payment_element)) return false;
-
-        $session = JFactory::getSession();
-        $return_context = $session->getId();
+ 
         $this->method_obj = $method;
         $this->logInfo('plgVmConfirmedOrder order number: ' . $oOrder['details']['BT']->order_number, 'message');
 
@@ -145,9 +143,8 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         );
 
         $this->storePSPluginInternalData($aDbValues);
-
         $aData = $this->api_dibs_get_requestFields($oOrderInfo);
-        
+    
         if(empty($aData['merchant'])) {
             JError::raiseWarning(100,JText::_('VMPAYMENT_DIBSPW_MID_NOT_SET'));
             return false;
@@ -193,9 +190,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
 
         $this->method_obj = $method;
         $aPaymentData = JRequest::get('post');
-        $sPaymentName = $this->renderPluginName($method);
         vmdebug('plgVmOnPaymentResponseReceived', $aPaymentData);
-         
         $oModelOrder = VmModel::getModel('orders');
         $virtuemart_order_id = $aPaymentData['orderid'];
         $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
@@ -223,7 +218,6 @@ class plgVmPaymentDibspw extends dibs_pw_api {
      *  None
      *  @author Valerie Isaksen
      */
-
     function plgVmOnPaymentNotification() {
         $aPaymentData = $_POST;
         if(!isset($aPaymentData['orderid']) || !isset($aPaymentData['s_sysmod'])) return;
@@ -239,38 +233,16 @@ class plgVmPaymentDibspw extends dibs_pw_api {
             $this->logInfo('getDataByOrderId payment not found: exit ', 'ERROR');
             return null;
         } 
-        // Save specific data to db table payment_plg_dibspw
-        $db = JFactory::getDBO();
-        $query = 'SHOW COLUMNS FROM `' . $this->_tablename . '` ';
-        $db->setQuery($query);
-        $columns = $db->loadResultArray(0);
-        $post_msg = '';
-        foreach ($aPaymentData as $key => $value) {
-            $table_key = 'dibspw_' . $key;
-            if (in_array($table_key, $columns)) {
-            $response_fields[$table_key] = $value;
-        }
-        } 
-         
-        $response_fields['payment_name'] = $this->renderPluginName($method);
-        $response_fields['order_number'] = $order_number;
-        $response_fields['virtuemart_order_id'] = $virtuemart_order_id;
-        $response_fields['virtuemart_paymentmethod_id'] = $payment->virtuemart_paymentmethod_id;
-        
-       
-        $this->storePSPluginInternalData($response_fields, 'virtuemart_order_id', $virtuemart_order_id, false);
-        
         // Set Confirmed status to order
+        $this->method_obj = $method;
         $oModelOrder = VmModel::getModel('orders');
         $virtuemart_order_id = $aPaymentData['orderid'];
         $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
-        $this->api_dibs_action_success($oOrder);
-
+        $this->api_dibs_action_callback($oModelOrder->getOrder($virtuemart_order_id)); 
         if($virtuemart_order_id) {
+            $order = array();
             $order['customer_notified'] = 0;
             $order['order_status'] = $this->helper_dibs_tools_conf('status_success', '');
-            
-            // send the email ONLY if payment has been accepted
             if($oOrder['history'][count($oOrder['history']) - 1]->order_status_code != $order['order_status']) {
                 $this->logInfo('plgVmOnPaymentResponseReceived, sentOrderConfirmedEmail ' . $virtuemart_order_id, 'message');
                 $order['virtuemart_order_id'] = $virtuemart_order_id;
@@ -282,10 +254,6 @@ class plgVmPaymentDibspw extends dibs_pw_api {
             vmError('DIBS data received, but no order id');
             return;
         }
-       
-       
-        $this->method_obj = $method;
-        $this->api_dibs_action_callback($oModelOrder->getOrder($virtuemart_order_id)); 
     }
 
     function getCosts(VirtueMartCart $cart, $method, $cart_prices) {
@@ -381,54 +349,37 @@ class plgVmPaymentDibspw extends dibs_pw_api {
      * @see components/com_virtuemart/helpers/vmPSPlugin::plgVmOnShowOrderBEPayment()
      */
     function plgVmOnShowOrderBEPayment($virtuemart_order_id, $payment_method_id) {
-    if (!$this->selectedThisByMethodId($payment_method_id)) {
-        return null; // Another method was selected, do nothing
-    }
-    /*
-    $db = JFactory::getDBO();
-    $q = 'SELECT * FROM `' . $this->_tablename . '` '
-        . 'WHERE `virtuemart_order_id` = ' . $virtuemart_order_id;
-    $db->setQuery($q);
-    if (!($paymentTable = $db->loadObject())) {
-        return '';
-    }
-    $html = '<table class="adminlist">' . "\n";
-    $html .= $this->getHtmlHeaderBE();
-    $html .= $this->getHtmlRowBE('dibspw_methodname', $paymentTable->payment_name);
-    $code = "dibspw_";
-    $paymentFields = array('transaction', 'acquirer', 'status', 'test');
-    foreach ($paymentTable as $key => $value) {
-        if (substr($key, 0, strlen($code)) == $code) {
-            if( in_array(substr($key, strlen($code)), $paymentFields)) {    
+        if (!$this->selectedThisByMethodId($payment_method_id)) {
+            return null; // Another method was selected, do nothing
+        }
+        // Get DIBS callback fields 
+        $db = JFactory::getDBO();
+        $q = 'SELECT * FROM `' . $this->helper_dibs_tools_prefix(). dibs_pw_api::api_dibs_get_tableName() . '` '
+         . 'WHERE `orderid` = ' . $virtuemart_order_id;
+        $db->setQuery($q);
+        if (!($paymentTable = $db->loadObject())) {
+            return '';
+        }
+        $method = $this->getVmPluginMethod($payment_method_id);
+        $html = '<table class="adminlist">' . "\n";
+        $html .= $this->getHtmlHeaderBE();
+        $html .= $this->getHtmlRowBE('Payment method name', $method->payment_name);
+        $paymentFields = array('transaction', 'paytype', 'status', 'testmode');
+        
+        // GEt acquirer fields for DIBS Invoice
+        $extInfo = unserialize($paymentTable->ext_info);
+        foreach ($paymentTable as $key => $value) {
+            if(in_array($key, $paymentFields)) {    
                 $html .= $this->getHtmlRowBE($key, $value);
             }
         }
-    }
-    $html .= '</table>' . "\n";
-    return $html;
-    */
-    
-    $db = JFactory::getDBO();
-    $q = 'SELECT * FROM `' . $this->helper_dibs_tools_prefix(). dibs_pw_api::api_dibs_get_tableName() . '` '
-        . 'WHERE `orderid` = ' . $virtuemart_order_id;
-    $db->setQuery($q);
-    if (!($paymentTable = $db->loadObject())) {
-        return '';
-    }
-    $method = $this->getVmPluginMethod($payment_method_id);
-    $html = '<table class="adminlist">' . "\n";
-    $html .= $this->getHtmlHeaderBE();
-    $html .= $this->getHtmlRowBE('Payment method name', $method->payment_name);
-    $paymentFields = array('transaction', 'paytype', 'status', 'testmode');
-    foreach ($paymentTable as $key => $value) {
-            if( in_array($key, $paymentFields)) {    
+        foreach($extInfo as $key => $value) {
+            if(strpos($key, "acquirer") !== false) {
                 $html .= $this->getHtmlRowBE($key, $value);
+            }
         }
-    }
-    $html .= '</table>' . "\n";
-    return $html;
-    
-    
+        $html .= '</table>' . "\n";
+        return $html;
     }
 
 }
