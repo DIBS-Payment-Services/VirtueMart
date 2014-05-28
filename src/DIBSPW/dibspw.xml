@@ -73,7 +73,7 @@
             <option value="email">Email</option>
         </param>
 	<param type="spacer" default="VMPAYMENT_DIBSPW_VIRTUEMART_PARAMS" level="level1" />
-	<param name="payment_logo" type="vmfiles" label="VMPAYMENT_DIBSPW_LOGO"
+	<param name="payment_logos" type="vmfiles" label="VMPAYMENT_DIBSPW_LOGO"
              	description="VMPAYMENT_DIBSPW_LOGO_DESC"
              	directory="/plugins/vmpayment/dibspw/imgs"
              	default="default" hide_default="1" hide_none="1"
