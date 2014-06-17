@@ -211,11 +211,11 @@ class dibs_pw_api extends dibs_pw_helpers {
             
             if( isset($mOrderInfo->cart['shipmentTax']) && $mOrderInfo->cart['shipmentTax'] ) {
                 $calcPrice += self::api_dibs_round($mOrderInfo->cart['shipmentTax'] + $mOrderInfo->cart['shipmentValue']);
-            }else { 
+            } else { 
                if ($mOrderInfo->cart['shipmentValue']) {
                    $calcPrice += self::api_dibs_round($mOrderInfo->cart['shipmentValue']);
                 } 
-            } 
+            }
             
             if($mOrderInfo->cart['shipmentValue']) {
                    $roundingDelta = $orderAmount - $calcPrice; 
