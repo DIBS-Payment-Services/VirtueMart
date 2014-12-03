@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<install version="1.6" type="plugin" group="vmpayment" method="upgrade">
-    <name>DIBS Payment Window</name>
+<extension version="2.5" type="plugin" group="vmpayment">
+    <name>DIBS Payment Window (D2/DX)</name>
     <creationDate>January 2012</creationDate>
     <author>DIBS A/S</author>
     <authorUrl>http://www.dibspayment.com</authorUrl>
     <copyright>Copyright (C) 2012 DIBS A/S. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
-    <version>4.1.6</version>
+    <version>4.1.7</version>
     <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
 	payment provider and available in many countries. ]]>
     </description>
@@ -17,19 +17,25 @@
         <filename>dibs_api/pw/dibs_pw_helpers.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers_cms.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers_interface.php</filename>
-    </files>
+     </files>
     <languages>
 	<language tag="en-GB">en-GB.plg_vmpayment_dibspw.ini</language>
         <language tag="en-GB">en-GB.plg_vmpayment_dibspw.sys.ini</language>
     </languages>
-    <params addpath="/administrator/components/com_virtuemart/elements">
+        <params addpath="/administrator/components/com_virtuemart/elements">
 	<param type="vmjpluginwarning" />
         
 	<param type="spacer" default="VMPAYMENT_DIBSPW_PARAMS" level="level1" />
 
 	<param type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
              default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
-
+        
+      	<param name="dibspw_platform" type="list" default="D2" 
+            label="VMPAYMENT_DIBSPW_PLATFORM" description="VMPAYMENT_DIBSPW_PLATFORM_DESC">
+            <option value="D2">D2</option>
+            <option value="DX">DX</option>
+        </param>
+    
 	<param type="text" name="dibspw_partnerid"  size="50" label="VMPAYMENT_DIBSPW_PID"
              default="" description="VMPAYMENT_DIBSPW_PID_DESC" />
 
@@ -91,13 +97,19 @@
 	<param name="max_amount" type="text"  label="VMPAYMENT_DIBSPW_MAX_AMOUNT" 
             description="VMPAYMENT_DIBSPW_MAX_AMOUNT_DESC" />
     </params>
-    <fieldset addpath="/administrator/components/com_virtuemart/elements">
-	<field type="vmjpluginwarning" />
-        
-	<field type="spacer" default="VMPAYMENT_DIBSPW_PARAMS" level="level1" />
-        
-	<field type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
+
+    
+    <vmconfig>
+        <fields name="params">
+          <fieldset name="payment"  addfieldpath="/administrator/components/com_virtuemart/elements">
+       <field type="text" name="dibspw_mid"  size="50" label="VMPAYMENT_DIBSPW_MID"
              default="" description="VMPAYMENT_DIBSPW_MID_DESC" />
+       
+       	<field name="dibspw_platform" type="list" default="D2" 
+            label="VMPAYMENT_DIBSPW_PLATFORM" description="VMPAYMENT_DIBSPW_PLATFORM_DESC">
+            <option value="D2">D2</option>
+            <option value="DX">DX</option>
+        </field>
 
 	<field type="text" name="dibspw_partnerid"  size="50" label="VMPAYMENT_DIBSPW_PID"
              default="" description="VMPAYMENT_DIBSPW_PID_DESC" />
@@ -161,5 +173,7 @@
             description="VMPAYMENT_DIBSPW_MIN_AMOUNT_DESC" />
 	<field name="max_amount" type="text"  label="VMPAYMENT_DIBSPW_MAX_AMOUNT" 
             description="VMPAYMENT_DIBSPW_MAX_AMOUNT_DESC" />
-    </fieldset>
-</install>      
+          </fieldset>
+        </fields>
+    </vmconfig>
+</extension>     

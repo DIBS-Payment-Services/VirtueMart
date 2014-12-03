@@ -9,7 +9,9 @@ class dibs_pw_api extends dibs_pw_helpers {
     
     private static $sDefaultCurr = array(0 => 'EUR', 1 => '978');
 
-    private static $aFormAction =  'https://sat1.dibspayment.com/dibspaymentwindow/entrypoint';
+    private static $aFormActionD2 =  'https://sat1.dibspayment.com/dibspaymentwindow/entrypoint';
+    
+    private static $aFormActionDX =  'https://payment.dibspayment.com/dpw/entrypoint';
     
     private static $aRespFields  = array('orderid' => 'orderid', 'status' => 'status',
                                          'testmode' => 'test', 'transaction' => 'transaction', 
@@ -102,7 +104,11 @@ class dibs_pw_api extends dibs_pw_helpers {
      * @return string 
      */
     final public function api_dibs_get_formAction($bResponse = FALSE) {
-        return self::$aFormAction;
+        if($this->helper_dibs_tools_conf('platform') == 'D2' ) { 
+            return self::$aFormActionD2;
+        } else {
+            return self::$aFormActionDX;
+        }
     }
     
     /**
@@ -207,40 +213,6 @@ class dibs_pw_api extends dibs_pw_helpers {
                     $calcPrice += $iTmpPrice * $oItem->qty;
                 }
                 unset($iTmpPrice, $sTmpName);
-            }
-            
-            if( isset($mOrderInfo->cart['shipmentTax']) && $mOrderInfo->cart['shipmentTax'] ) {
-                $calcPrice += self::api_dibs_round($mOrderInfo->cart['shipmentTax'] + $mOrderInfo->cart['shipmentValue']);
-            } else { 
-               if ($mOrderInfo->cart['shipmentValue']) {
-                   $calcPrice += self::api_dibs_round($mOrderInfo->cart['shipmentValue']);
-                } 
-            }
-            
-            if($mOrderInfo->cart['shipmentValue']) {
-                   $roundingDelta = $orderAmount - $calcPrice; 
-                   $roundingDelta;
-                   $aData['oiRow' . $i++] = 
-                        "1;" . 
-                        "pcs" . ";" . 
-                        "Shipping;" .
-                        self::api_dibs_round($mOrderInfo->cart['shipmentValue']) . ";" .
-                        "rnd;".self::api_dibs_round($mOrderInfo->cart['shipmentTax']);
-            }
-              
-            if($orderAmount != $calcPrice) {
-                   $roundingDelta = $orderAmount - $calcPrice; 
-                   if(abs($roundingDelta) > 1) {
-                       $name = "Tax & Discounts;"; 
-                   } else {
-                       $name = "Rounding;"; 
-                   }
-                   $aData['oiRow' . $i++] = 
-                        "1;" . 
-                        "pcs" . ";" . 
-                        "{$name}" .
-                        $roundingDelta . ";" .
-                        "rnd;0";
             }
         }
         if(!empty($aData['orderid'])) $aData['yourRef'] = $aData['orderid'];

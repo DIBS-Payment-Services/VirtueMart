@@ -111,31 +111,126 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      * @return object 
      */
     function helper_dibs_obj_items($mOrderInfo) {
+        if (!class_exists ('calculationHelper')) require(JPATH_VM_ADMINISTRATOR . DS . 'helpers' . DS . 'calculationh.php');
+	$calculator = calculationHelper::getInstance();
+        $this->_cartData['VatTax'] = array();
+        $this->_cartPrices['basePrice'] = 0;
+        $this->_cartPrices['basePriceWithTax'] = 0;
+        $this->_cartPrices['discountedPriceWithoutTax'] = 0;
+        $this->_cartPrices['salesPrice'] = 0;
+        $this->_cartPrices['taxAmount'] = 0;
+        $this->_cartPrices['salesPriceWithDiscount'] = 0;
+        $this->_cartPrices['discountAmount'] = 0;
+        $this->_cartPrices['priceWithoutTax'] = 0;
+        $this->_cartPrices['subTotalProducts'] = 0;
+        $this->_product = null;
+        $this->_cartData['DBTaxRulesBill'] = $calculator->gatherEffectingRulesForBill('DBTaxBill');
+        $this->_cartData['taxRulesBill'] = $calculator->gatherEffectingRulesForBill('TaxBill');
+        $this->_cartData['DATaxRulesBill'] = $calculator->gatherEffectingRulesForBill('DATaxBill');
+        $this->_cartPrices['salesPriceDBT'] = array();
+        $this->_cartPrices['taxRulesBill'] = array();
+        $this->_cartPrices['DATaxRulesBill'] = array();
+        $oCart = VirtueMartCart::getCart();
+        $arr = $calculator->getCheckoutPrices($oCart, true);
+        $prices = $calculator->getCartPrices();
         $aItems = array();
         foreach($mOrderInfo->order->items as $mItem) {
-          
+              $aItems[] = (object)array(
+                    'id'    => $mItem->virtuemart_product_id,
+                    'name'  => $mItem->order_item_name,
+                    'sku'   => $mItem->order_item_sku,
+                    'price' => $mItem->product_final_price,
+                    'qty'   => $mItem->product_quantity,
+                    'tax'   => 0//$mItem->product_tax
+                );
+            }
+                
+        // Calculate the discount from all rules before tax to calculate billTotal
+	$cartdiscountBeforeTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['DBTaxRulesBill'], $prices['salesPrice']));
+        
+        // calculate the new subTotal with discounts before tax, necessary for billTotal
+	$toTax = $prices['salesPrice'] + $cartdiscountBeforeTax;
+        // now each taxRule subTotal is reduced with DBTax and we can calculate the cartTax 
+	$cartTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['taxRulesBill'], $toTax));
+         // toDisc is new subTotal after tax, now it comes discount afterTax and we can calculate the final cart price with tax.
+	$toDisc = $toTax + $cartTax;
+        
+        $arr = $calculator->calculateShipmentPrice($oCart, true);
+        $this->_cartPrices['salesPriceShipment'] = $arr['salesPriceShipment'];
+        $arr = $calculator->calculatePaymentPrice($oCart, true);
+        $this->_cartPrices['salesPricePayment'] = $arr['salesPricePayment'];
+        $cartdiscountAfterTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['DATaxRulesBill'], $toDisc));
+        $this->_cartPrices['withTax'] = $toDisc + $cartdiscountAfterTax;
+        $this->_cartPrices['billTotal'] = $this->_cartPrices['salesPriceShipment'] + $this->_cartPrices['salesPricePayment'] + $this->_cartPrices['withTax'] + $this->_cartPrices['salesPriceCoupon'];
+        if( $this->_cartPrices['salesPriceShipment']  ) {
+            
             $aItems[] = (object)array(
-                'id'    => $mItem->virtuemart_product_id,
-                'name'  => $mItem->order_item_name,
-                'sku'   => $mItem->order_item_sku,
-                'price' => $mItem->product_final_price,
-                'qty'   => $mItem->product_quantity,
+                'id'    => 'shipment',
+                'name'  => 'Shipping',
+                'sku'   => '',
+                'price' => $this->_cartPrices['salesPriceShipment'],
+                'qty'   => 1,
+                'tax'   => 0//$mItem->product_tax
+            );
+            
+        }
+        
+        if( abs($cartdiscountBeforeTax) ) {
+             $aItems[] = (object)array(
+                'id'    => 'discount',
+                'name'  => 'Discount',
+                'sku'   => '',
+                'price' => $cartdiscountBeforeTax,
+                'qty'   => 1,
                 'tax'   => 0//$mItem->product_tax
             );
         }
-
-        if(isset($mOrderInfo->cart['couponValue']) && $mOrderInfo->cart['couponValue']){
-            $couponAmount = abs($mOrderInfo->cart['couponValue']);
-            $aItems[] = (object)array(
-                'id'    => 'coupon_0',
-                'name'  => 'Counpon',
-                'sku'   => 'cpn',
-                'price' => -$couponAmount,
+        
+        if( $cartTax ) {
+            
+             $aItems[] = (object)array(
+                'id'    => 'cart_tax',
+                'name'  => 'Tax',
+                'sku'   => '',
+                'price' => $cartTax,
                 'qty'   => 1,
-                'tax'   => 0
-            );     
+                'tax'   => 0//$mItem->product_tax
+            );
         }
         
+       if( $this->_cartPrices['salesPricePayment'] ) {
+             $aItems[] = (object)array(
+                'id'    => 'cart_tax1',
+                'name'  => 'Tax',
+                'sku'   => '',
+                'price' => $this->_cartPrices['salesPricePayment'],
+                'qty'   => 1,
+                'tax'   => 0//$mItem->product_tax
+            );
+        }
+        
+        if( $cartdiscountAfterTax ) {
+             $aItems[] = (object)array(
+                'id'    => 'cart_tax2',
+                'name'  => 'Discount',
+                'sku'   => '',
+                'price' => $cartdiscountAfterTax,
+                'qty'   => 1,
+                'tax'   => 0//$mItem->product_tax
+            );
+        }
+       
+            
+         if( abs($mOrderInfo->cart['salesPriceCoupon']) ){
+             $aItems[] = (object)array(
+                'id'    => 'cart_coupone',
+                'name'  => 'Coupone',
+                'sku'   => '',
+                'price' => $mOrderInfo->cart['salesPriceCoupon'],
+                'qty'   => 1,
+                'tax'   => 0//$mItem->product_tax
+            );
+        }
         return $aItems;
     }
     

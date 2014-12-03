@@ -16,15 +16,15 @@ class plgVmPaymentDibspw extends dibs_pw_api {
     public static $_this = false;
     private static $aSqlFields = array(
 	   'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
-	    'virtuemart_order_id' => ' int(1) UNSIGNED DEFAULT NULL',
-	    'order_number' => ' char(32) DEFAULT NULL',
-	    'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED DEFAULT NULL',
+	    'virtuemart_order_id' => ' int(1) UNSIGNED ',
+	    'order_number' => ' char(32) ',
+	    'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED ',
 	    'payment_name' => 'varchar(5000)',
 	    'payment_order_total' => 'decimal(15,5) NOT NULL DEFAULT \'0.00000\' ',
 	    'payment_currency' => 'char(3) ',
-	    'cost_per_transaction' => ' decimal(10,2) DEFAULT NULL ',
-	    'cost_percent_total' => ' decimal(10,2) DEFAULT NULL ',
-	    'tax_id' => ' smallint(1) DEFAULT NULL',
+	    'cost_per_transaction' => ' decimal(10,2) ',
+	    'cost_percent_total' => ' decimal(10,2) ',
+	    'tax_id' => ' smallint(1)',
     );
 
     function __construct(& $subject, $config) {
@@ -36,7 +36,8 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $this->_tableId = 'id';
         $aVarsToPush = array(
             'dibspw_mid' => array('', 'char'),
-	    'dibspw_partnerid' => array('', 'char'),  
+	    'dibspw_partnerid' => array('', 'char'),
+            'dibspw_platform' => array('D2', 'char'),
             'dibspw_method' => array('2', 'int'),
             'dibspw_hmac' => array('', 'char'),
             'dibspw_testmode' => array('yes', 'char'),
@@ -60,6 +61,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
             'tax_id' => array(0, 'int')
         );
 
+        
         $this->setConfigParameterable($this->_configTableFieldName, $aVarsToPush);
     }
 
@@ -343,6 +345,9 @@ class plgVmPaymentDibspw extends dibs_pw_api {
     function plgVmSetOnTablePluginParamsPayment($name, $id, &$table) {
         return $this->setOnTablePluginParams($name, $id, $table);
     }
+    function plgVmDeclarePluginParamsPaymentVM3( &$data) {
+		return $this->declarePluginParams('payment', $data);
+	}
     
      /**
      * Display stored payment data for an order
