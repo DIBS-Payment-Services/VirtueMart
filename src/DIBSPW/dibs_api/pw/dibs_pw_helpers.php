@@ -318,7 +318,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_etc($mOrderInfo) {
         return (object)array(
-            'sysmod'      => 'j25v_4_1_6',
+            'sysmod'      => 'j25v_4_1_7',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
             'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification'),
             'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')		
