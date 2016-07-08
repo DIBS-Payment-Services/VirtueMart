@@ -303,9 +303,9 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_urls() {
         return (object)array(
-            'acceptreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived',
-            'callbackurl'     => "index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification",
-            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel',
+            'acceptreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginresponsereceived&Itemid=' . vRequest::getInt('Itemid'),
+            'callbackurl'     => "index.php?option=com_virtuemart&view=vmplg&task=pluginnotification",
+            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginuserpaymentCancel&Itemid=' . vRequest::getInt('Itemid'),
             'carturl'         => "index.php/cart/"
         );
     }
@@ -320,7 +320,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         return (object)array(
             'sysmod'      => 'j25v_4_1_7',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
-            'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification'),
+            'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=vmplg&task=pluginnotification'),
             'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')		
         );
     }
