@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<extension version="2.5" type="plugin" group="vmpayment">
+<extension version="2.5" type="plugin" group="vmpayment" method="upgrade">
     <name>DIBS Payment Window (D2/DX)</name>
     <creationDate>January 2012</creationDate>
     <author>DIBS A/S</author>
@@ -8,21 +8,23 @@
     <license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
     <version>4.1.7</version>
     <description><![CDATA[<a href="http://dibspayment.com" target="_blank">DIBS</a> is a popular
-	payment provider and available in many countries. ]]>
+        payment provider and available in many countries. ]]>
     </description>
     <files>
-	<filename plugin="dibspw">dibspw.php</filename>
+    <filename plugin="dibspw">dibspw.php</filename>
         <filename>imgs/dibspw.gif</filename>
         <filename>dibs_api/pw/dibs_pw_api.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers_cms.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers_interface.php</filename>
-     </files>
-    <languages>
-	<language tag="en-GB">en-GB.plg_vmpayment_dibspw.ini</language>
+    </files>
+    <languages folder="langs">
+        <language tag="en-GB">en-GB.plg_vmpayment_dibspw.ini</language>
         <language tag="en-GB">en-GB.plg_vmpayment_dibspw.sys.ini</language>
+        <language tag="nb-NO">nb-NO.plg_vmpayment_dibspw.ini</language>
+        <language tag="nb-NO">nb-NO.plg_vmpayment_dibspw.sys.ini</language>
     </languages>
-        <params addpath="/administrator/components/com_virtuemart/elements">
+    <params addpath="/administrator/components/com_virtuemart/elements">
 	<param type="vmjpluginwarning" />
         
 	<param type="spacer" default="VMPAYMENT_DIBSPW_PARAMS" level="level1" />
