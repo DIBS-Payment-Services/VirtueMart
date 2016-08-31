@@ -305,8 +305,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         return (object)array(
             'acceptreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived',
             'callbackurl'     => "index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification",
-            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel',
-            'carturl'         => "index.php/cart/"
+            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel'
         );
     }
     
@@ -321,7 +320,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
             'sysmod'      => 'j25v_4_1_7',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
             'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification'),
-            'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')		
+            'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')
         );
     }
     

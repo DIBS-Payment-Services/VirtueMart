@@ -239,8 +239,7 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
         return (object)array(
             'acceptreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginresponsereceived/',
             'callbackurl'     => "index.php/component/virtuemart/pluginresponse/pluginnotification/pluginnotification/",
-            'cancelreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginuserpaymentCancel/',
-            'carturl'         => "index.php/cart/"
+            'cancelreturnurl' => 'index.php/component/virtuemart/pluginresponse/pluginuserpaymentCancel/'
         );
   
     } 
