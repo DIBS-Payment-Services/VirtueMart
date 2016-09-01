@@ -15,7 +15,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
     // instance of class
     public static $_this = false;
     private static $aSqlFields = array(
-       'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
+        'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
         'virtuemart_order_id' => ' int(1) UNSIGNED ',
         'order_number' => ' char(32) ',
         'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED ',
@@ -36,7 +36,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $this->_tableId = 'id';
         $aVarsToPush = array(
             'dibspw_mid' => array('', 'char'),
-        'dibspw_partnerid' => array('', 'char'),
+            'dibspw_partnerid' => array('', 'char'),
             'dibspw_platform' => array('D2', 'char'),
             'dibspw_method' => array('2', 'int'),
             'dibspw_hmac' => array('', 'char'),
@@ -110,20 +110,19 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $this->getPaymentCurrency($method);
 
         $oOrderInfo = (object) array(
-                    'order' => (object) array(
-                        'orderid' => $oOrder['details']['BT']->virtuemart_order_id,
-                        'currency' => $method->payment_currency,
-                        'items' => $oOrder['items']
-                    ),
-                    'shipping_tax' => $mShippingTax,
-                    'cart' => $oCart->pricesUnformatted,
-                    'shipping' => isset($oOrder['details']['ST']) ? $oOrder['details']['ST'] :
-                            $oOrder['details']['BT'],
-                    'billing' => $oOrder['details']['BT'],
-                    'cart_addr' => (object) array(
-                        'billing' => $oCart->BT,
-                        'shipping' => $oCart->ST == 0 ? $oCart->BT : $oCart->ST
-                    )
+            'order' => (object) array(
+                'orderid' => $oOrder['details']['BT']->virtuemart_order_id,
+                'currency' => $method->payment_currency,
+                'items' => $oOrder['items']
+            ),
+            'shipping_tax' => $mShippingTax,
+            'cart' => $oCart->pricesUnformatted,
+            'shipping' => isset($oOrder['details']['ST']) ? $oOrder['details']['ST'] : $oOrder['details']['BT'],
+            'billing' => $oOrder['details']['BT'],
+            'cart_addr' => (object) array(
+                'billing' => $oCart->BT,
+                'shipping' => $oCart->ST == 0 ? $oCart->BT : $oCart->ST
+            )
         );
 
         $paymentCurrency = CurrencyDisplay::getInstance($method->payment_currency);
@@ -132,15 +131,15 @@ class plgVmPaymentDibspw extends dibs_pw_api {
                                           $oOrder['details']['BT']->order_total,
                                           false), 2);
         $aDbValues = array(
-        'virtuemart_order_id' => $oOrder['details']['BT']->virtuemart_order_id,
-        'order_number' => $oOrder['details']['BT']->order_number,
-        'payment_name' => $this->renderPluginName($method, $oOrder),
-        'virtuemart_paymentmethod_id' => $oCart->virtuemart_paymentmethod_id,
-        'cost_per_transaction' => $method->cost_per_transaction,
-        'cost_percent_total' => $method->cost_percent_total,
-        'payment_currency' => $method->payment_currency,
-        'payment_order_total' => $totalInPaymentCurrency,
-        'tax_id' => $method->tax_id
+            'virtuemart_order_id' => $oOrder['details']['BT']->virtuemart_order_id,
+            'order_number' => $oOrder['details']['BT']->order_number,
+            'payment_name' => $this->renderPluginName($method, $oOrder),
+            'virtuemart_paymentmethod_id' => $oCart->virtuemart_paymentmethod_id,
+            'cost_per_transaction' => $method->cost_per_transaction,
+            'cost_percent_total' => $method->cost_percent_total,
+            'payment_currency' => $method->payment_currency,
+            'payment_order_total' => $totalInPaymentCurrency,
+            'tax_id' => $method->tax_id
         );
 
         $this->storePSPluginInternalData($aDbValues);
