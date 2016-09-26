@@ -12,19 +12,19 @@ require_once dirname(__FILE__) . DS . 'dibs_api' . DS . 'pw' . DS . 'dibs_pw_api
 
 class plgVmPaymentDibspw extends dibs_pw_api {
 
-    // instance of class 
+    // instance of class
     public static $_this = false;
     private static $aSqlFields = array(
-	   'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
-	    'virtuemart_order_id' => ' int(1) UNSIGNED ',
-	    'order_number' => ' char(32) ',
-	    'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED ',
-	    'payment_name' => 'varchar(5000)',
-	    'payment_order_total' => 'decimal(15,5) NOT NULL DEFAULT \'0.00000\' ',
-	    'payment_currency' => 'char(3) ',
-	    'cost_per_transaction' => ' decimal(10,2) ',
-	    'cost_percent_total' => ' decimal(10,2) ',
-	    'tax_id' => ' smallint(1)',
+        'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
+        'virtuemart_order_id' => ' int(1) UNSIGNED ',
+        'order_number' => ' char(32) ',
+        'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED ',
+        'payment_name' => 'varchar(5000)',
+        'payment_order_total' => 'decimal(15,5) NOT NULL DEFAULT \'0.00000\' ',
+        'payment_currency' => 'char(3) ',
+        'cost_per_transaction' => ' decimal(10,2) ',
+        'cost_percent_total' => ' decimal(10,2) ',
+        'tax_id' => ' smallint(1)',
     );
 
     function __construct(& $subject, $config) {
@@ -36,7 +36,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $this->_tableId = 'id';
         $aVarsToPush = array(
             'dibspw_mid' => array('', 'char'),
-	    'dibspw_partnerid' => array('', 'char'),
+            'dibspw_partnerid' => array('', 'char'),
             'dibspw_platform' => array('D2', 'char'),
             'dibspw_method' => array('2', 'int'),
             'dibspw_hmac' => array('', 'char'),
@@ -61,7 +61,6 @@ class plgVmPaymentDibspw extends dibs_pw_api {
             'tax_id' => array(0, 'int')
         );
 
-        
         $this->setConfigParameterable($this->_configTableFieldName, $aVarsToPush);
     }
 
@@ -77,9 +76,9 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         if(!($method = $this->getVmPluginMethod($oOrder['details']['BT']->virtuemart_paymentmethod_id))) {
             return null; // Another method was selected, do nothing
         }
-        
+
         if(!$this->selectedThisElement($method->payment_element)) return false;
- 
+
         $this->method_obj = $method;
         $this->logInfo('plgVmConfirmedOrder order number: ' . $oOrder['details']['BT']->order_number, 'message');
 
@@ -89,17 +88,17 @@ class plgVmPaymentDibspw extends dibs_pw_api {
             require(JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'currency.php');
         if(!class_exists('TableVendors'))
             require(JPATH_VM_ADMINISTRATOR . DS . 'table' . DS . 'vendors.php');
-        
+
         $new_status = '';
-        
-        $iShipTaxId = isset($oCart->pricesUnformatted['shipment_tax_id']) ? 
+
+        $iShipTaxId = isset($oCart->pricesUnformatted['shipment_tax_id']) ?
                       (int)$oCart->pricesUnformatted['shipment_tax_id'] : 0;
         $mShippingTax = "";
         if(!empty($iShipTaxId)) {
-            $mShippingTax = $this->helper_dibs_db_read_single("SELECT `calc_value` 
-                                               FROM `" . $this->helper_dibs_tools_prefix() . "calcs` 
-                                               WHERE `virtuemart_calc_id` = " . 
-                                               $iShipTaxId . " 
+            $mShippingTax = $this->helper_dibs_db_read_single("SELECT `calc_value`
+                                               FROM `" . $this->helper_dibs_tools_prefix() . "calcs`
+                                               WHERE `virtuemart_calc_id` = " .
+                                               $iShipTaxId . "
                                                LIMIT 1", "calc_value");
         }
 
@@ -111,62 +110,61 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $this->getPaymentCurrency($method);
 
         $oOrderInfo = (object) array(
-                    'order' => (object) array(
-                        'orderid' => $oOrder['details']['BT']->virtuemart_order_id,
-                        'currency' => $method->payment_currency,
-                        'items' => $oOrder['items']
-                    ),
-                    'shipping_tax' => $mShippingTax,
-                    'cart' => $oCart->pricesUnformatted,
-                    'shipping' => isset($oOrder['details']['ST']) ? $oOrder['details']['ST'] :
-                            $oOrder['details']['BT'],
-                    'billing' => $oOrder['details']['BT'],
-                    'cart_addr' => (object) array(
-                        'billing' => $oCart->BT,
-                        'shipping' => $oCart->ST == 0 ? $oCart->BT : $oCart->ST
-                    )
+            'order' => (object) array(
+                'orderid' => $oOrder['details']['BT']->virtuemart_order_id,
+                'currency' => $method->payment_currency,
+                'items' => $oOrder['items']
+            ),
+            'shipping_tax' => $mShippingTax,
+            'cart' => $oCart->pricesUnformatted,
+            'shipping' => isset($oOrder['details']['ST']) ? $oOrder['details']['ST'] : $oOrder['details']['BT'],
+            'billing' => $oOrder['details']['BT'],
+            'cart_addr' => (object) array(
+                'billing' => $oCart->BT,
+                'shipping' => $oCart->ST == 0 ? $oCart->BT : $oCart->ST
+            )
         );
-        
+
         $paymentCurrency = CurrencyDisplay::getInstance($method->payment_currency);
         $totalInPaymentCurrency = round($paymentCurrency->convertCurrencyTo(
-                                          $method->payment_currency, 
-                                          $oOrder['details']['BT']->order_total, 
+                                          $method->payment_currency,
+                                          $oOrder['details']['BT']->order_total,
                                           false), 2);
         $aDbValues = array(
-        'virtuemart_order_id' => $oOrder['details']['BT']->virtuemart_order_id,
-		'order_number' => $oOrder['details']['BT']->order_number,
-		'payment_name' => $this->renderPluginName($method, $oOrder),
-		'virtuemart_paymentmethod_id' => $oCart->virtuemart_paymentmethod_id,
-		'cost_per_transaction' => $method->cost_per_transaction,
-		'cost_percent_total' => $method->cost_percent_total,
-		'payment_currency' => $method->payment_currency,
-		'payment_order_total' => $totalInPaymentCurrency,
-		'tax_id' => $method->tax_id
+            'virtuemart_order_id' => $oOrder['details']['BT']->virtuemart_order_id,
+            'order_number' => $oOrder['details']['BT']->order_number,
+            'payment_name' => $this->renderPluginName($method, $oOrder),
+            'virtuemart_paymentmethod_id' => $oCart->virtuemart_paymentmethod_id,
+            'cost_per_transaction' => $method->cost_per_transaction,
+            'cost_percent_total' => $method->cost_percent_total,
+            'payment_currency' => $method->payment_currency,
+            'payment_order_total' => $totalInPaymentCurrency,
+            'tax_id' => $method->tax_id
         );
 
         $this->storePSPluginInternalData($aDbValues);
         $aData = $this->api_dibs_get_requestFields($oOrderInfo);
-    
+
         if(empty($aData['merchant'])) {
             JError::raiseWarning(100,JText::_('VMPAYMENT_DIBSPW_MID_NOT_SET'));
             return false;
         }
-        
-        $sForm = JText::_('VMPAYMENT_DIBSPW_REDIRECT'); 
+
+        $sForm = JText::_('VMPAYMENT_DIBSPW_REDIRECT');
         $sForm.= '<form action="' . $this->api_dibs_get_formAction() .
                 '" method="post" name="vm_dibspw_form" >';
         foreach($aData as $sName => $sValue) {
-            $sForm.= '<input type="hidden" name="' . $sName . 
+            $sForm.= '<input type="hidden" name="' . $sName .
                      '" value="' . htmlspecialchars($sValue) . '" />';
         }
-        
+
         $sForm.= ' </form>';
         $sForm.= ' <script type="text/javascript">';
         $sForm.= ' document.vm_dibspw_form.submit();';
         $sForm.= ' </script>';
 
-        return $this->processConfirmedOrderPaymentResponse(2, $oCart, $oOrder, $sForm, 
-                                                           $this->renderPluginName($method, $oOrder), 
+        return $this->processConfirmedOrderPaymentResponse(2, $oCart, $oOrder, $sForm,
+                                                           $this->renderPluginName($method, $oOrder),
                                                            $new_status);
     }
 
@@ -234,13 +232,13 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         if(!$payment) {
             $this->logInfo('getDataByOrderId payment not found: exit ', 'ERROR');
             return null;
-        } 
+        }
         // Set Confirmed status to order
         $this->method_obj = $method;
         $oModelOrder = VmModel::getModel('orders');
         $virtuemart_order_id = $aPaymentData['orderid'];
         $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
-        $this->api_dibs_action_callback($oModelOrder->getOrder($virtuemart_order_id)); 
+        $this->api_dibs_action_callback($oModelOrder->getOrder($virtuemart_order_id));
         if($virtuemart_order_id) {
             $order = array();
             $order['customer_notified'] = 0;
@@ -303,10 +301,10 @@ class plgVmPaymentDibspw extends dibs_pw_api {
     }
 
     function convert($method) {
-	$method->min_amount = (float) $method->min_amount;
-	$method->max_amount = (float) $method->max_amount;
+    $method->min_amount = (float) $method->min_amount;
+    $method->max_amount = (float) $method->max_amount;
     }
-    
+
     /**
      * We must reimplement this triggers for joomla 1.7
      */
@@ -346,9 +344,9 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         return $this->setOnTablePluginParams($name, $id, $table);
     }
     function plgVmDeclarePluginParamsPaymentVM3( &$data) {
-		return $this->declarePluginParams('payment', $data);
-	}
-    
+        return $this->declarePluginParams('payment', $data);
+    }
+
      /**
      * Display stored payment data for an order
      * @see components/com_virtuemart/helpers/vmPSPlugin::plgVmOnShowOrderBEPayment()
@@ -357,7 +355,7 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         if (!$this->selectedThisByMethodId($payment_method_id)) {
             return null; // Another method was selected, do nothing
         }
-        // Get DIBS callback fields 
+        // Get DIBS callback fields
         $db = JFactory::getDBO();
         $q = 'SELECT * FROM `' . $this->helper_dibs_tools_prefix(). dibs_pw_api::api_dibs_get_tableName() . '` '
          . 'WHERE `orderid` = ' . $virtuemart_order_id;
@@ -370,11 +368,11 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $html .= $this->getHtmlHeaderBE();
         $html .= $this->getHtmlRowBE('Payment method name', $method->payment_name);
         $paymentFields = array('transaction', 'paytype', 'status', 'testmode');
-        
+
         // GEt acquirer fields for DIBS Invoice
         $extInfo = unserialize($paymentTable->ext_info);
         foreach ($paymentTable as $key => $value) {
-            if(in_array($key, $paymentFields)) {    
+            if(in_array($key, $paymentFields)) {
                 $html .= $this->getHtmlRowBE($key, $value);
             }
         }

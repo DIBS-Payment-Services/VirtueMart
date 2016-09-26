@@ -321,7 +321,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
             'sysmod'      => 'j25v_4_1_7',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
             'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification'),
-            'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')		
+            'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')
         );
     }
     
@@ -333,7 +333,9 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         $order = array();
         $order['order_status'] = $this->helper_dibs_tools_conf('status_success','');
         $order['customer_notified'] = 1;
-        $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED', $virtuemart_order_id);
+        $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED');
+        $order['comments'] .= '<br />' . JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_TRANSACTION');
+        $order['comments'] .= ': ' . $_POST['transaction'];
 
         $oModelOrder->updateStatusForOneOrder($virtuemart_order_id, $order, true);
     }
