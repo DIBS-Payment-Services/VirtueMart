@@ -305,8 +305,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         return (object)array(
             'acceptreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginresponsereceived&Itemid=' . vRequest::getInt('Itemid'),
             'callbackurl'     => "index.php?option=com_virtuemart&view=vmplg&task=pluginnotification",
-            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginuserpaymentCancel&Itemid=' . vRequest::getInt('Itemid'),
-            'carturl'         => "index.php/cart/"
+            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginuserpaymentCancel&Itemid=' . vRequest::getInt('Itemid')
         );
     }
     
