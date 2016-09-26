@@ -305,8 +305,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         return (object)array(
             'acceptreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived',
             'callbackurl'     => "index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification",
-            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel',
-            'carturl'         => "index.php/cart/"
+            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel'
         );
     }
     
