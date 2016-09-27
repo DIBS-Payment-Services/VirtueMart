@@ -12,7 +12,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         $oDB_dibs->query();
         return true;
     }
-    
+
     /**
      * Read single value ($sName) from SQL select result.
      * If result with name $sName not found null returned.
@@ -30,7 +30,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         if(isset($mResult[0]->$sName)) return $mResult[0]->$sName;
         else return null;
     }
-    
+
     /**
      * Return settings with CMS method.
      * 
@@ -42,7 +42,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         $sConfName = $sPrefix . $sVar;
         return $this->method_obj->$sConfName;
     }
-    
+
     /**
      * Return CMS DB table prefix.
      * 
@@ -50,7 +50,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_tools_prefix() {
         return "#__virtuemart_";
-		
+
     }
     
     /**
@@ -73,7 +73,6 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         return JROUTE::_(JURI::root() . $sLink);
     }
 
-
     /**
      * Build CMS order information to API object.
      * 
@@ -90,8 +89,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
                                   $this->cms_dibs_get_currency($mOrderInfo->order->currency)
                               )
                 );
-        }
-        else {
+        } else {
             return (object)array(
                 'orderid'  => $mOrderInfo['details']['BT']->virtuemart_order_id,
                 'amount'   => $mOrderInfo['details']['BT']->order_total,
@@ -103,7 +101,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
             );
         }
     }
-    
+
     /**
      * Build CMS each ordered item information to API object.
      * 
@@ -112,7 +110,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_items($mOrderInfo) {
         if (!class_exists ('calculationHelper')) require(JPATH_VM_ADMINISTRATOR . DS . 'helpers' . DS . 'calculationh.php');
-	$calculator = calculationHelper::getInstance();
+        $calculator = calculationHelper::getInstance();
         $this->_cartData['VatTax'] = array();
         $this->_cartPrices['basePrice'] = 0;
         $this->_cartPrices['basePriceWithTax'] = 0;
@@ -144,17 +142,17 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
                     'tax'   => 0//$mItem->product_tax
                 );
             }
-                
+
         // Calculate the discount from all rules before tax to calculate billTotal
-	$cartdiscountBeforeTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['DBTaxRulesBill'], $prices['salesPrice']));
-        
+        $cartdiscountBeforeTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['DBTaxRulesBill'], $prices['salesPrice']));
+
         // calculate the new subTotal with discounts before tax, necessary for billTotal
-	$toTax = $prices['salesPrice'] + $cartdiscountBeforeTax;
+        $toTax = $prices['salesPrice'] + $cartdiscountBeforeTax;
         // now each taxRule subTotal is reduced with DBTax and we can calculate the cartTax 
-	$cartTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['taxRulesBill'], $toTax));
+        $cartTax = $calculator->roundInternal($calculator->cartRuleCalculation($this->_cartData['taxRulesBill'], $toTax));
          // toDisc is new subTotal after tax, now it comes discount afterTax and we can calculate the final cart price with tax.
-	$toDisc = $toTax + $cartTax;
-        
+        $toDisc = $toTax + $cartTax;
+
         $arr = $calculator->calculateShipmentPrice($oCart, true);
         $this->_cartPrices['salesPriceShipment'] = $arr['salesPriceShipment'];
         $arr = $calculator->calculatePaymentPrice($oCart, true);
@@ -163,68 +161,64 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         $this->_cartPrices['withTax'] = $toDisc + $cartdiscountAfterTax;
         $this->_cartPrices['billTotal'] = $this->_cartPrices['salesPriceShipment'] + $this->_cartPrices['salesPricePayment'] + $this->_cartPrices['withTax'] + $this->_cartPrices['salesPriceCoupon'];
         if( $this->_cartPrices['salesPriceShipment']  ) {
-            
             $aItems[] = (object)array(
                 'id'    => 'shipment',
-                'name'  => 'Shipping',
+                'name'  => JText::sprintf('VMPAYMENT_DIBSPW_SHIPPING'),
                 'sku'   => '',
                 'price' => $this->_cartPrices['salesPriceShipment'],
                 'qty'   => 1,
                 'tax'   => 0//$mItem->product_tax
             );
-            
         }
-        
+
         if( abs($cartdiscountBeforeTax) ) {
              $aItems[] = (object)array(
                 'id'    => 'discount',
-                'name'  => 'Discount',
+                'name'  => JText::sprintf('VMPAYMENT_DIBSPW_DISCOUNT'),
                 'sku'   => '',
                 'price' => $cartdiscountBeforeTax,
                 'qty'   => 1,
                 'tax'   => 0//$mItem->product_tax
             );
         }
-        
+
         if( $cartTax ) {
-            
              $aItems[] = (object)array(
                 'id'    => 'cart_tax',
-                'name'  => 'Tax',
+                'name'  => JText::sprintf('VMPAYMENT_DIBSPW_TAX'),
                 'sku'   => '',
                 'price' => $cartTax,
                 'qty'   => 1,
                 'tax'   => 0//$mItem->product_tax
             );
         }
-        
+
        if( $this->_cartPrices['salesPricePayment'] ) {
              $aItems[] = (object)array(
                 'id'    => 'cart_tax1',
-                'name'  => 'Tax',
+                'name'  => JText::sprintf('VMPAYMENT_DIBSPW_TAX'),
                 'sku'   => '',
                 'price' => $this->_cartPrices['salesPricePayment'],
                 'qty'   => 1,
                 'tax'   => 0//$mItem->product_tax
             );
         }
-        
+
         if( $cartdiscountAfterTax ) {
              $aItems[] = (object)array(
                 'id'    => 'cart_tax2',
-                'name'  => 'Discount',
+                'name'  => JText::sprintf('VMPAYMENT_DIBSPW_DISCOUNT'),
                 'sku'   => '',
                 'price' => $cartdiscountAfterTax,
                 'qty'   => 1,
                 'tax'   => 0//$mItem->product_tax
             );
         }
-       
-            
+
          if( abs($mOrderInfo->cart['salesPriceCoupon']) ){
              $aItems[] = (object)array(
-                'id'    => 'cart_coupone',
-                'name'  => 'Coupone',
+                'id'    => 'cart_coupon',
+                'name'  => JText::sprintf('VMPAYMENT_DIBSPW_COUPON'),
                 'sku'   => '',
                 'price' => $mOrderInfo->cart['salesPriceCoupon'],
                 'qty'   => 1,
@@ -233,7 +227,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         }
         return $aItems;
     }
-    
+
     /**
      * Build CMS shipping information to API object.
      * 
@@ -250,7 +244,7 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
             'tax'   => (float)$mOrderInfo->shipping->order_shipment_tax
         );
     }
-    
+
     /**
      * Build CMS customer addresses to API object.
      * 
@@ -273,7 +267,6 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
                                     ShopFunctions::getStateByID(
                                         $mOrderInfo->cart_addr->shipping['virtuemart_state_id']
                                     ) : '',
-            
             'billingfirstname'   => $mOrderInfo->billing->first_name,
             'billinglastname'    => $mOrderInfo->billing->last_name,
             'billingpostalcode'  => $mOrderInfo->billing->zip,
@@ -288,12 +281,13 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
                                     ShopFunctions::getStateByID(
                                         $mOrderInfo->cart_addr->billing['virtuemart_state_id']
                                     ) : '',
-            
-            'billingmobile'      => $mOrderInfo->billing->phone_1,
+            'billingmobile'      => isset($mOrderInfo->billing->phone_2) ?
+                                        $mOrderInfo->billing->phone_2 :
+                                        $mOrderInfo->billing->phone_1,
             'billingemail'       => $mOrderInfo->billing->email
         );
     }
-    
+
     /**
      * Returns object with URLs needed for API, 
      * e.g.: callbackurl, acceptreturnurl, etc.
@@ -303,12 +297,12 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_urls() {
         return (object)array(
-            'acceptreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginresponsereceived',
-            'callbackurl'     => "index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification",
-            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=pluginresponse&task=pluginuserpaymentCancel'
+            'acceptreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginresponsereceived&Itemid=' . vRequest::getInt('Itemid'),
+            'callbackurl'     => "index.php?option=com_virtuemart&view=vmplg&task=pluginnotification",
+            'cancelreturnurl' => 'index.php?option=com_virtuemart&view=vmplg&task=pluginuserpaymentCancel&Itemid=' . vRequest::getInt('Itemid')
         );
     }
-    
+
     /**
      * Returns object with additional information to send with payment.
      * 
@@ -317,13 +311,13 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
      */
     function helper_dibs_obj_etc($mOrderInfo) {
         return (object)array(
-            'sysmod'      => 'j25v_4_1_7',
+            'sysmod'      => 'j25v_4_1_8',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
-            'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=pluginresponse&task=pluginnotification'),
+            'callbackfix' => $this->helper_dibs_tools_url('index.php?option=com_virtuemart&view=vmplg&task=pluginnotification'),
             'partnerid'   => $this->helper_dibs_tools_conf('dibspw_partnerid','')
         );
     }
-    
+
     function helper_dibs_hook_callback($mOrderInfo) {
         if(!class_exists('VirtueMartModelOrders'))
             require( JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'orders.php' );
@@ -335,6 +329,8 @@ class dibs_pw_helpers extends dibs_pw_helpers_cms implements dibs_pw_helpers_int
         $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED');
         $order['comments'] .= '<br />' . JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_TRANSACTION');
         $order['comments'] .= ': ' . $_POST['transaction'];
+        $order['comments'] .= '<br />' . JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_ORDERID');
+        $order['comments'] .= ': ' . $_POST['orderid'];
 
         $oModelOrder->updateStatusForOneOrder($virtuemart_order_id, $order, true);
     }
