@@ -338,18 +338,28 @@ class dibs_pw_api extends dibs_pw_helpers {
      * 
      * @param mixed $mOrder 
      */
-    final public function api_dibs_action_success($mOrder) {
+   final public function api_dibs_action_success($mOrder) {
         $iErr = $this->api_dibs_checkMainFields($mOrder);
         if(empty($iErr)) {
             $this->api_dibs_updateResultRow(array('success_action' => '1', 'success_error' => ''));
         }
         else {
-            $this->api_dibs_updateResultRow(array('success_error' => 'Errno: ' . $iErr));
-            echo $this->api_dibs_errCodeToMessage($iErr);
-            exit();
+           $this->api_dibs_updateResultRow(array('success_error' => 'Errno: ' . $iErr));
+           $app = JFactory::getApplication();
+           $app->enqueueMessage(vmText::_('VMPAYMENT_DIBSPW_TXT_MSG_PAYMENT_FAILED'), 'error');
+           $postArr = JRequest::get();
+           ob_start();
+           print_r($postArr);
+           $arrayString = ob_get_contents();
+           ob_end_flush();
+           $debugMessage =  'Error code: ' . $iErr . ". Error message: " .
+           $this->helper_dibs_tools_lang('txt_err_' . $iErr) .
+           $arrayString;
+           $this->debugLog($debugMessage, '', 'error');
+           $app->redirect(JRoute::_('index.php?option=com_virtuemart&view=cart&Itemid=' . vRequest::getInt('Itemid'), false));
         }
     }
-    
+ 
     /**
      * Processes cancel from payment gateway.
      */

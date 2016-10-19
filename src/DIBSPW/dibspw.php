@@ -195,6 +195,15 @@ class plgVmPaymentDibspw extends dibs_pw_api {
         $virtuemart_order_id = $aPaymentData['orderid'];
         $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
         $this->api_dibs_action_success($oOrder);
+        VmConfig::loadJLang('com_virtuemart_orders', TRUE);
+        $payment_method = $this->renderPluginName($this->getVmPluginMethod($method->virtuemart_paymentmethod_id));
+        $totalInPaymentCurrency = vmPSPlugin::getAmountInCurrency($oOrder['details']['BT']->order_total,$method->payment_currency);
+        $html = $this->renderByLayout('default',
+                     array("order" => $oOrder,
+                           "responseParams" => $aPaymentData,
+                           "payment_name"   => $payment_method,
+                           "totalInPaymentCurrency" => $totalInPaymentCurrency['display']
+                ));
         $cart = VirtueMartCart::getCart();
         $cart->emptyCart();
         return true;

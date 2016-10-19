@@ -17,6 +17,7 @@
         <filename>dibs_api/pw/dibs_pw_helpers.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers_cms.php</filename>
         <filename>dibs_api/pw/dibs_pw_helpers_interface.php</filename>
+        <folder>tmpl</folder>
     </files>
     <languages folder="langs">
         <language tag="en-GB">en-GB.plg_vmpayment_dibspw.ini</language>
