@@ -171,7 +171,9 @@ class dibs_pw_api extends dibs_pw_helpers {
      */
     private function api_dibs_invoiceFields(&$aData, $mOrderInfo) {
         $oOrder = $this->api_dibs_invoiceOrderObject($mOrderInfo);
+        
         $orderAmount = self::api_dibs_round($this->api_dibs_commonOrderObject($mOrderInfo)->order->amount);
+        
         foreach($oOrder->addr as $sKey => $sVal) {
             $sVal = trim($sVal);
             if(!empty($sVal)) {
@@ -182,7 +184,6 @@ class dibs_pw_api extends dibs_pw_helpers {
             $aData['shippingFee']    = self::api_dibs_round($oOrder->ship->rate);
             $aData['shippingFeeVAT'] = self::api_dibs_round($oOrder->ship->tax);            
         }
-        
         $oOrder->items[] = $this->helper_dibs_obj_ship($mOrderInfo);
         $calculatedPrice = 0;
         $calcPrice = 0;
@@ -191,28 +192,31 @@ class dibs_pw_api extends dibs_pw_helpers {
             $aData['oinames'] = 'Qty;UnitCode;Description;Amount;ItemId;VatAmount';
             $i = 1;
             foreach($oOrder->items as $oItem) {
-                
                 if( $oItem->id != "shipping0") {
-                $iTmpPrice = self::api_dibs_round($oItem->price);
-                if(!empty($iTmpPrice)) {
-                    $sTmpName = !empty($oItem->name) ? $oItem->name : $oItem->sku;
-                    if(empty($sTmpName)) $sTmpName = $oItem->id;
+                    $iTmpPrice = self::api_dibs_round($oItem->price);
+                    if(!empty($iTmpPrice)) {
+                        $sTmpName = !empty($oItem->name) ? $oItem->name : $oItem->sku;
+                        if(empty($sTmpName)) $sTmpName = $oItem->id;
 
-                    $aData['oiRow' . $i++] = 
-                        self::api_dibs_round($oItem->qty, 3) / 1000 . ";" . 
-                        "pcs" . ";" . 
-                        self::api_dibs_utf8Fix(str_replace(";","\;",$sTmpName)) . ";" .
-                        $iTmpPrice . ";" .
-                        self::api_dibs_utf8Fix(str_replace(";","\;",$oItem->id)) . ";" .
-                        self::api_dibs_round($oItem->tax);
-                  $calculatedPrice += ($iTmpPrice + self::api_dibs_round($oItem->tax)) * (self::api_dibs_round($oItem->qty, 3) / 1000) ;
+                        $aData['oiRow' . $i++] =
+                            self::api_dibs_round($oItem->qty, 3) / 1000 . ";" .
+                            "pcs" . ";" .
+                            self::api_dibs_utf8Fix(str_replace(";","\;",$sTmpName)) . ";" .
+                            $iTmpPrice . ";" .
+                            self::api_dibs_utf8Fix(str_replace(";","\;",$oItem->id)) . ";" 
+                            self::api_dibs_round($oItem->tax);
+                      $calculatedPrice += ($iTmpPrice + self::api_dibs_round($oItem->tax)) * (self::api_dibs_round($oItem->qty, 3) / 1000) ;
+                    }
                 }
-                }
-                
                 if( $oItem->id != "shipping0") {
                     $calcPrice += $iTmpPrice * $oItem->qty;
                 }
                 unset($iTmpPrice, $sTmpName);
+            }
+
+
+            if(($delta = $orderAmount - $calculatedPrice) != 0) {
+                $aData['oiRow' . $i++] = "1;pcs;Rounding;$delta;rounding_id;0";
             }
         }
         if(!empty($aData['orderid'])) $aData['yourRef'] = $aData['orderid'];
