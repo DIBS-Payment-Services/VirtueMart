@@ -203,7 +203,7 @@ class dibs_pw_api extends dibs_pw_helpers {
                             "pcs" . ";" .
                             self::api_dibs_utf8Fix(str_replace(";","\;",$sTmpName)) . ";" .
                             $iTmpPrice . ";" .
-                            self::api_dibs_utf8Fix(str_replace(";","\;",$oItem->id)) . ";" 
+                            self::api_dibs_utf8Fix(str_replace(";","\;",$oItem->id)) . ";" .
                             self::api_dibs_round($oItem->tax);
                       $calculatedPrice += ($iTmpPrice + self::api_dibs_round($oItem->tax)) * (self::api_dibs_round($oItem->qty, 3) / 1000) ;
                     }
