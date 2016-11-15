@@ -194,27 +194,30 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
     function plgVmOnPaymentResponseReceived(&$html) {
         $virtuemart_paymentmethod_id = JRequest::getInt('s_pm', 0);
         $method = $this->getVmPluginMethod($virtuemart_paymentmethod_id);
-        if(!($method = $this->getVmPluginMethod($virtuemart_paymentmethod_id)))
+        if(!($method = $this->getVmPluginMethod($virtuemart_paymentmethod_id))) {
             return null; // Another method was selected, do nothing
-        if(!$this->selectedThisElement($method->payment_element))
+        }
+        if(!$this->selectedThisElement($method->payment_element)) {
             return false;
-        
-        if(!class_exists('VirtueMartCart'))
+        }
+        if(!class_exists('VirtueMartCart')) {
             require(JPATH_VM_SITE . DS . 'helpers' . DS . 'cart.php');
-        if(!class_exists('shopFunctionsF'))
+        }
+        if(!class_exists('shopFunctionsF')) {
             require(JPATH_VM_SITE . DS . 'helpers' . DS . 'shopfunctionsf.php');
-        if(!class_exists('VirtueMartModelOrders'))
+        }
+        if(!class_exists('VirtueMartModelOrders')) {
             require( JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'orders.php' );
+        }
         
         $this->method_obj = $method;
-        $aPaymentData = JRequest::get('post');
-        $sPaymentName = $this->renderPluginName($method);
+        $aPaymentData = JRequest::get();
+        $this->renderPluginName($method);
         vmdebug('plgVmOnPaymentResponseReceived', $aPaymentData);
         $oModelOrder = VmModel::getModel('orders');
         $virtuemart_order_id = $aPaymentData['orderid'];
         $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
         $this->api_dibs_action_success($oOrder);
-  
         if($virtuemart_order_id) {
             $order['customer_notified'] = 0;
             $order['order_status'] = $this->helper_dibs_tools_conf('status_success', '');
@@ -239,10 +242,13 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
     }
 
     function plgVmOnUserPaymentCancel() {
-        if(!class_exists('VirtueMartModelOrders'))
+        if(!class_exists('VirtueMartModelOrders')) {
             require( JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'orders.php' );
+        }
         $virtuemart_order_id = JRequest::getString('orderid');
-        if(!$virtuemart_order_id) return null;
+        if(!$virtuemart_order_id) {
+            return null;
+        }
         $this->handlePaymentUserCancel($virtuemart_order_id);
         return true;
     }
@@ -258,8 +264,9 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
     function plgVmOnPaymentNotification() {
         $aPaymentData = $_POST;
         if(!isset($aPaymentData['orderid']) || !isset($aPaymentData['s_sysmod'])) return;
-        if(!class_exists('VirtueMartModelOrders'))
+        if(!class_exists('VirtueMartModelOrders')) {
             require( JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'orders.php' );
+        }
         $oModelOrder = VmModel::getModel('orders');
         $virtuemart_order_id = $aPaymentData['orderid'];
         if(!$virtuemart_order_id) return;

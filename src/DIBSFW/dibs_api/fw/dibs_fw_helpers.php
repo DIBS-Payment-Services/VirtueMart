@@ -334,7 +334,7 @@ class dibs_fw_helpers extends dibs_fw_helpers_cms implements dibs_fw_helpers_int
      */
     public function helper_dibs_obj_etc($mOrderInfo) {
         return (object)array(
-            'sysmod'      => 'j25vm2_3_0_3',
+            'sysmod'      => 'j25vm2_3_0_4',
             'pm'          => $mOrderInfo->billing->virtuemart_paymentmethod_id,
         );
     }

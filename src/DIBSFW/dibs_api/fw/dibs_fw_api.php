@@ -136,7 +136,7 @@ class dibs_fw_api extends dibs_fw_helpers {
         $aData['accepturl'] = $this->helper_dibs_tools_url($oOrder->urls->acceptreturnurl);
         $aData['cancelurl'] = $this->helper_dibs_tools_url($oOrder->urls->cancelreturnurl);
         if(strpos($aData['callbackurl'], '/5c65f1600b8_dcbf.php') === FALSE) {
-            $aData['callbackurl']   = $this->helper_dibs_tools_url($oOrder->urls->callbackurl);
+            $aData['callbackurl'] = $this->helper_dibs_tools_url($oOrder->urls->callbackurl);
         }
     }
     
@@ -325,19 +325,19 @@ class dibs_fw_api extends dibs_fw_helpers {
      * @return int 
      */
     private function api_dibs_checkMainFields($mOrder) {
-        if(!isset($_POST['orderid'])) return 1;
+        if(!JRequest::getInt('orderid')) return 1;
         $mOrder = $this->helper_dibs_obj_order($mOrder, TRUE);
-        if(!isset($_POST['amount'])) return 3;
-        if(isset($_POST['voucher_amount']) && $_POST['voucher_amount'] > 0) {
-            $iAmount = ($_POST['amount'] == 0) ? $_POST['voucher_amount'] : $_POST['amount_original'];
+        if(!JRequest::getInt('amount')) return 3;
+        if( JRequest::getInt('voucher_amount') > 0 ) {
+            $iAmount = (JRequest::getInt('amount') == 0) ? JRequest::getInt('voucher_amount') : JRequest::getInt('amount_original');
+        } else { 
+            $iAmount = JRequest::getInt('amount');
         }
-        else $iAmount = $_POST['amount'];
-        $iFeeAmount = (isset($_POST['fee']) && $_POST['fee'] > 0) ? 
-                      $iAmount - $_POST['fee'] : $iAmount;
+        $iFeeAmount = (JRequest::getInt('fee') > 0) ? 
+                      $iAmount - JRequest::getInt('fee') : $iAmount;
         if(abs((int)$iAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01 && abs((int)$iFeeAmount - (int)self::api_dibs_round($mOrder->amount)) >= 0.01) return 4;
-    	if(!isset($_POST['currency'])) return 5;
-        
-        if((int)$mOrder->currency != $_POST['currency']) return 6;
+    	if(!JRequest::getInt('currency')) return 5;
+        if((int)$mOrder->currency != JRequest::getInt('currency')) return 6;
         
         if(self::api_dibs_checkHash($this->helper_dibs_tools_conf('md5key1'), 
                                     $this->helper_dibs_tools_conf('md5key2')) !== TRUE) return 7;
@@ -375,7 +375,6 @@ class dibs_fw_api extends dibs_fw_helpers {
                                                   'cancel_action'  => 0,
                                                   'success_error'  => $iErr));
         }
-        
         return (int)$iErr;
     }
     
@@ -402,16 +401,10 @@ class dibs_fw_api extends dibs_fw_helpers {
             }
             exit((string)$iErr);
         }
-        
-       
-        
-        
    	$sQuery = "SELECT `status` FROM `" . $this->helper_dibs_tools_prefix() . 
                                              self::api_dibs_get_tableName() . "` 
                    WHERE `orderid` = '" . self::api_dibs_sqlEncode($_POST['orderid']) . "' 
                    LIMIT 1;";
-                   
-       
         if($this->helper_dibs_db_read_single($sQuery, 'status') == 0) {
             $aFields = array('callback_action' => 1, 'status' => 1);
             $aResp = $_POST;
