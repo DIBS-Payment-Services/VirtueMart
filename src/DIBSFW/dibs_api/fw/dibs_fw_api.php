@@ -136,7 +136,7 @@ class dibs_fw_api extends dibs_fw_helpers {
         $aData['accepturl'] = $this->helper_dibs_tools_url($oOrder->urls->acceptreturnurl);
         $aData['cancelurl'] = $this->helper_dibs_tools_url($oOrder->urls->cancelreturnurl);
         if(strpos($aData['callbackurl'], '/5c65f1600b8_dcbf.php') === FALSE) {
-            $aData['callbackurl'] = $this->helper_dibs_tools_url($aData['callbackurl']);
+            $aData['callbackurl']   = $this->helper_dibs_tools_url($oOrder->urls->callbackurl);
         }
     }
     
@@ -395,7 +395,6 @@ class dibs_fw_api extends dibs_fw_helpers {
      */
     final public function api_dibs_action_callback($mOrder) {
         $iErr = $this->api_dibs_checkMainFields($mOrder, FALSE);
-        
         
         if(!empty($iErr)) {
             if($iErr != 1 && $iErr != 2) {

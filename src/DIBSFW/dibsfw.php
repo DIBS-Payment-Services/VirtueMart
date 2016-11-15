@@ -16,15 +16,15 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
     public static $_this = false;
     private static $aSqlFields = array(
 	    'id' => ' INT(11) unsigned NOT NULL AUTO_INCREMENT ',
-	    'virtuemart_order_id' => ' int(1) UNSIGNED DEFAULT NULL',
-	    'order_number' => ' char(32) DEFAULT NULL',
-	    'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED DEFAULT NULL',
+	    'virtuemart_order_id' => ' int(1) UNSIGNED ',
+	    'order_number' => ' char(32) ',
+	    'virtuemart_paymentmethod_id' => ' mediumint(1) UNSIGNED',
 	    'payment_name' => 'varchar(5000)',
 	    'payment_order_total' => 'decimal(15,5) NOT NULL DEFAULT \'0.00000\' ',
 	    'payment_currency' => 'char(3) ',
-	    'cost_per_transaction' => ' decimal(10,2) DEFAULT NULL ',
-	    'cost_percent_total' => ' decimal(10,2) DEFAULT NULL ',
-	    'tax_id' => ' smallint(1) DEFAULT NULL'
+	    'cost_per_transaction' => ' decimal(10,2) ',
+	    'cost_percent_total' => ' decimal(10,2) ',
+	    'tax_id' => ' smallint(1)'
     );
 
     function __construct(& $subject, $config) {
@@ -38,7 +38,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
             'dibsfw_mid' => array('', 'char'),
             'dibsfw_md5key1' => array('', 'char'),
             
-            'dibsfw_md5key2' => array('', 'string'),
+            'dibsfw_md5key2' => array('', 'char'),
             
             
             'dibsfw_cgiapiusr' => array('', 'char'),
@@ -58,6 +58,8 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
             'dibsfw_decor' => array('default', 'char'),
             'dibsfw_account' => array('', 'char'),
             'dibsfw_distr' => array('empty', 'char'),
+            'dibsfw_logo' => array('', 'char'),
+            
             
             'payment_logos' => array('', 'char'),
             'status_pending' => array('', 'char'),
@@ -88,9 +90,8 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         if(!($method = $this->getVmPluginMethod($oOrder['details']['BT']->virtuemart_paymentmethod_id))) {
             return null; // Another method was selected, do nothing
         }
-     
-        
         if(!$this->selectedThisElement($method->payment_element)) return false;
+
         $session = JFactory::getSession();
         $return_context = $session->getId();
         $this->method_obj = $method;
@@ -102,7 +103,9 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
             require(JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'currency.php');
         if(!class_exists('TableVendors'))
             require(JPATH_VM_ADMINISTRATOR . DS . 'table' . DS . 'vendors.php');
+        
         $new_status = '';
+        
         $iShipTaxId = isset($oCart->pricesUnformatted['shipment_tax_id']) ? 
                       (int)$oCart->pricesUnformatted['shipment_tax_id'] : 0;
         $mShippingTax = "";
@@ -120,6 +123,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         $vendor = $vendorModel->getVendor();
         $vendorModel->addImages($vendor, 1);
         $this->getPaymentCurrency($method);
+
         $oOrderInfo = (object) array(
                     'order' => (object) array(
                         'orderid' => $oOrder['details']['BT']->virtuemart_order_id,
@@ -136,6 +140,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
                         'shipping' => $oCart->ST == 0 ? $oCart->BT : $oCart->ST
                     )
         );
+        
         $paymentCurrency = CurrencyDisplay::getInstance($method->payment_currency);
         $totalInPaymentCurrency = round($paymentCurrency->convertCurrencyTo(
                                           $method->payment_currency, 
@@ -155,22 +160,23 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
 
         $this->storePSPluginInternalData($aDbValues);
         $aData = $this->api_dibs_get_requestFields($oOrderInfo);
-        
         if(empty($aData['merchant'])) {
-            JError::raiseWarning(100,JText::_('VMPAYMENT_DIBSFW_MID_NOT_SET'));
+            vmInfo(JText::_('VMPAYMENT_DIBSPW_MID_NOT_SET'));
             return false;
         }
-       
-        $sForm = JText::_('VMPAYMENT_DIBSFW_REDIRECT');
-        $sForm .= '<form action="' . $this->api_dibs_get_formAction() .
-                '" method="post" name="vm_dibspw_form">';
+
+        $sForm = '<form action="' . $this->api_dibs_get_formAction() .
+                '" method="post" name="vm_dibspw_form" >';
+        $sForm.= '<input type="submit" value="Proceed payment" 
+                alt="Click to pay with DIBS - secure payment service!" />';
         foreach($aData as $sName => $sValue) {
             $sForm.= '<input type="hidden" name="' . $sName . 
-                     '" value="' . htmlspecialchars($sValue) . '" />';
+                     '" value="' . $sValue . '" />';
         }
+
         $sForm .= '</form>';
         $sForm.= ' <script type="text/javascript">';
-        $sForm.= ' document.vm_dibspw_form.submit();';
+        $sForm.= '     //document.vm_dibspw_form.submit();';
         $sForm.= ' </script>';
 
         return $this->processConfirmedOrderPaymentResponse(2, $oCart, $oOrder, $sForm, 
@@ -186,13 +192,12 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
     }
 
     function plgVmOnPaymentResponseReceived(&$html) {
-        
         $virtuemart_paymentmethod_id = JRequest::getInt('s_pm', 0);
-        
+        $method = $this->getVmPluginMethod($virtuemart_paymentmethod_id);
         if(!($method = $this->getVmPluginMethod($virtuemart_paymentmethod_id)))
             return null; // Another method was selected, do nothing
-        if(!$this->selectedThisElement($method->payment_element)) return false;
-        
+        if(!$this->selectedThisElement($method->payment_element))
+            return false;
         
         if(!class_exists('VirtueMartCart'))
             require(JPATH_VM_SITE . DS . 'helpers' . DS . 'cart.php');
@@ -200,6 +205,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
             require(JPATH_VM_SITE . DS . 'helpers' . DS . 'shopfunctionsf.php');
         if(!class_exists('VirtueMartModelOrders'))
             require( JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'orders.php' );
+        
         $this->method_obj = $method;
         $aPaymentData = JRequest::get('post');
         $sPaymentName = $this->renderPluginName($method);
@@ -208,11 +214,11 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         $virtuemart_order_id = $aPaymentData['orderid'];
         $oOrder = $oModelOrder->getOrder($virtuemart_order_id);
         $this->api_dibs_action_success($oOrder);
-
+  
         if($virtuemart_order_id) {
             $order['customer_notified'] = 0;
             $order['order_status'] = $this->helper_dibs_tools_conf('status_success', '');
-            //$order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED', $virtuemart_order_id);
+            $order['comments'] = JText::sprintf('VMPAYMENT_DIBSPW_PAYMENT_STATUS_CONFIRMED', $virtuemart_order_id);
             
             // send the email ONLY if payment has been accepted
             if($oOrder['history'][count($oOrder['history']) - 1]->order_status_code != $order['order_status']) {
@@ -228,20 +234,15 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
             return;
         }
         $cart = VirtueMartCart::getCart();
-      
         $cart->emptyCart();
         return true;
     }
 
     function plgVmOnUserPaymentCancel() {
-        $virtuemart_paymentmethod_id = JRequest::getInt('s_pm', 0);
-        if(!($method = $this->getVmPluginMethod($virtuemart_paymentmethod_id))) return null; // Another method was selected, do nothing
-        if(!$this->selectedThisElement($method->payment_element)) return false;
         if(!class_exists('VirtueMartModelOrders'))
             require( JPATH_VM_ADMINISTRATOR . DS . 'models' . DS . 'orders.php' );
         $virtuemart_order_id = JRequest::getString('orderid');
         if(!$virtuemart_order_id) return null;
-        $this->api_dibs_action_cancel();
         $this->handlePaymentUserCancel($virtuemart_order_id);
         return true;
     }
@@ -271,7 +272,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         }
         $this->method_obj = $method;
         $mOrderInfo = $oModelOrder->getOrder($virtuemart_order_id);
-        $this->api_dibs_action_callback($oModelOrder->getOrder($virtuemart_order_id));
+        $this->helper_dibs_hook_callback($mOrderInfo);
     }
 
     function getCosts(VirtueMartCart $cart, $method, $cart_prices) {
@@ -334,14 +335,6 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         return $this->OnSelectCheck($cart);
     }
 
-    public function plgVmDisplayListFEPayment(VirtueMartCart $cart, $selected = 0, &$htmlIn) {
-        return $this->displayListFE($cart, $selected, $htmlIn);
-    }
-
-    public function plgVmonSelectedCalculatePricePayment(VirtueMartCart $cart, array &$cart_prices, &$cart_prices_name) {
-        return $this->onSelectedCalculatePrice($cart, $cart_prices, $cart_prices_name);
-    }
-
     function plgVmOnCheckAutomaticSelectedPayment(VirtueMartCart $cart, array $cart_prices = array()) {
         return $this->onCheckAutomaticSelected($cart, $cart_prices);
     }
@@ -349,11 +342,7 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
     public function plgVmOnShowOrderFEPayment($virtuemart_order_id, $virtuemart_paymentmethod_id, &$payment_name) {
         $this->onShowOrderFE($virtuemart_order_id, $virtuemart_paymentmethod_id, $payment_name);
     }
-
-    function plgVmonShowOrderPrintPayment($order_number, $method_id) {
-        return $this->onShowOrderPrint($order_number, $method_id);
-    }
-
+   
     function plgVmDeclarePluginParamsPayment($name, $id, &$data) {
         return $this->declarePluginParams('payment', $name, $id, $data);
     }
@@ -362,31 +351,28 @@ class plgVmPaymentDibsfw extends dibs_fw_api {
         return $this->setOnTablePluginParams($name, $id, $table);
     }
     
-    function plgVmOnShowOrderBEPayment($virtuemart_order_id, $payment_method_id) {
-          if (!$this->selectedThisByMethodId($payment_method_id)) {
-        return null; // Another method was selected, do nothing
+    
+          /**
+     * We must reimplement this triggers for joomla 1.7
+     */
+   
+    public function plgVmDisplayListFEPayment(VirtueMartCart $cart, $selected = 0, &$htmlIn) {
+        return $this->displayListFE($cart, $selected, $htmlIn);
     }
-          
-    $db = JFactory::getDBO();
-    $q = 'SELECT * FROM `' . $this->helper_dibs_tools_prefix(). dibs_fw_api::api_dibs_get_tableName() . '` '
-        . 'WHERE `orderid` = ' . $virtuemart_order_id;
-    $db->setQuery($q);
-    if (!($paymentTable = $db->loadObject())) {
-        return '';
+
+    public function plgVmonSelectedCalculatePricePayment(VirtueMartCart $cart, array &$cart_prices, &$cart_prices_name) {
+        return $this->onSelectedCalculatePrice($cart, $cart_prices, $cart_prices_name);
     }
-    $method = $this->getVmPluginMethod($payment_method_id);
-    $html = '<table class="adminlist">' . "\n";
-    $html .= $this->getHtmlHeaderBE();
-    $html .= $this->getHtmlRowBE('Payment method name', $method->payment_name);
-    $paymentFields = array('transaction', 'paytype', 'status', 'testmode');
-    foreach ($paymentTable as $key => $value) {
-            if( in_array($key, $paymentFields)) {    
-                $html .= $this->getHtmlRowBE($key, $value);
-        }
+
+   
+
+    function plgVmonShowOrderPrintPayment($order_number, $method_id) {
+        return $this->onShowOrderPrint($order_number, $method_id);
     }
-    $html .= '</table>' . "\n";
-    return $html;
-    }
+
+    function plgVmDeclarePluginParamsPaymentVM3( &$data) {
+    		return $this->declarePluginParams('payment', $data);
+	}
 
 }
 
